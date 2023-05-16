@@ -1,0 +1,55 @@
+version: '3'
+services:
+  mysql:
+    container_name: owo-db
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - owomysql:/var/lib/mysql
+    ports:
+      - 9100:3306
+  frontend:
+    container_name: owo-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 9000:80
+    volumes:
+      - ./frontend:/app
+  backend-node:
+    container_name: owo-backend-node
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+    ports:
+      - 9002:8000
+    volumes:
+      - ./backend-node:/app
+    depends_on:
+      - mysql
+  backend-go:
+    container_name: owo-backend-go
+    platform: linux/amd64
+    build:
+      context: ./backend-go/dev
+      dockerfile: Dockerfile
+    ports:
+      - 9001:8000
+    volumes:
+      - ./backend-go:/app
+      - gomod:/go/pkg/mod
+      - gocache:/root/.cache/go-build
+    command: [ "air", "-c", "./dev/.air.conf" ]
+    restart: unless-stopped
+    depends_on:
+      - mysql
+volumes:
+  gomod:
+  gocache:
+  owomysql:
