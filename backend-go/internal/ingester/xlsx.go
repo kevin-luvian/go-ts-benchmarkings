@@ -56,21 +56,21 @@ func ReadXlsx(filePath string, opts ReadXlsxOpts) error {
 		Transaction: tx,
 	})
 
-	stopAll := func() {
+	total := int64(0)
+	abort := func() {
 		close(sigterm)
 		// sink the last channel
 		for w := range writerChan {
 			sink(w)
 		}
+		tx.Rollback()
+		fmt.Println("Rolling back transaction, Total:", total)
 	}
 
-	total := int64(0)
 	for res := range writerChan {
 		total += res.RowsAffected
 		if res.Error != nil {
-			stopAll()
-			tx.Rollback()
-			fmt.Println("Rolling back transaction, Total:", total)
+			abort()
 			return res.Error
 		}
 

@@ -13,6 +13,15 @@ services:
       - owomysql:/var/lib/mysql
     ports:
       - 9100:3306
+  owo-redis:
+    container_name: owo-redis
+    image: redis:6.2.6-alpine
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    volumes:
+      - ./redis.conf:/etc/redis/redis.conf
+    restart: unless-stopped
+    ports:
+      - 9101:6379
   frontend:
     container_name: owo-frontend
     build:
@@ -36,6 +45,7 @@ services:
       - ./tests:/tests
     depends_on:
       - owo-mysql
+      - owo-redis
   backend-go:
     container_name: owo-backend-go
     platform: linux/amd64
@@ -55,6 +65,24 @@ services:
     restart: unless-stopped
     depends_on:
       - owo-mysql
+      - owo-redis
+  backend-go-sse:
+    container_name: owo-backend-go-sse
+    platform: linux/amd64
+    build:
+      context: ./backend-go-sse/dev
+      dockerfile: Dockerfile
+    ports:
+      - 9003:8000
+    volumes:
+      - ./backend-go-sse:/app
+      - ./docker.env:/app/.env
+      - gomodSSE:/go/pkg/mod
+      - gocacheSSE:/root/.cache/go-build
+    command: [ "air", "-c", "./dev/.air.conf" ]
+    restart: unless-stopped
+    depends_on:
+      - owo-redis
 
   # prod-backend-go:
   #   container_name: prod-backend-go
@@ -75,5 +103,5 @@ volumes:
   gomod:
   gocache:
   owomysql:
-  gomodProd:
-  gocacheProd:
+  gomodSSE:
+  gocacheSSE:
