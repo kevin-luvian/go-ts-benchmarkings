@@ -4,17 +4,25 @@ const cors = require("cors");
 const { Server } = require("../internal/settings/lazy_settings");
 const bodyParser = require("body-parser");
 
-const indexRouter = require("./routes/index");
+const { makeRouter } = require("./routes/index");
+const { UseCase } = require("./usecase");
+const { connectSequelize } = require("../internal/db");
 
-const app = express();
+const makeApp = async () => {
+  const app = express();
 
-app.use(cors({ origin: Server.cors }));
-app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+  app.use(cors({ origin: Server.cors }));
+  app.use(logger("dev"));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.json());
 
-app.use("/", indexRouter);
+  const db = await connectSequelize();
+  const useCase = new UseCase({ db });
+  const router = makeRouter(useCase);
+  app.use("/", router);
+  return app;
+};
 
-module.exports = app;
+module.exports = { makeApp };

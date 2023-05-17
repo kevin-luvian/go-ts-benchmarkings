@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 
+	iDB "benchgo/internal/db"
 	"benchgo/internal/settings"
 	handler "benchgo/server/handlers"
 	"benchgo/server/routers"
@@ -19,18 +20,20 @@ func main() {
 	gin.SetMode(settings.Server.RunMode)
 
 	// setup database
-	// db, err := db.New(db.Config{
-	// 	SourceURL:             setting.Database.DockerURL,
-	// 	Retries:               setting.Database.Retries,
-	// 	MaxOpenConnections:    setting.Database.MaxActive,
-	// 	MaxIdleConnections:    setting.Database.MaxIdle,
-	// 	ConnectionMaxLifetime: setting.Database.MaxLifetime,
-	// })
-	// if err != nil {
-	// 	logging.Fatalln("error initializing database", err)
-	// }
+	db, err := iDB.New(iDB.Config{
+		SourceURL:             settings.Database.URL,
+		Retries:               settings.Database.Retries,
+		MaxOpenConnections:    settings.Database.MaxActive,
+		MaxIdleConnections:    settings.Database.MaxIdle,
+		ConnectionMaxLifetime: settings.Database.MaxLifetime,
+	})
+	if err != nil {
+		panic(err)
+	}
 
-	h := handler.New(handler.Dependencies{})
+	h := handler.New(handler.Dependencies{
+		DB: db,
+	})
 	routersInit := routers.InitRouter(h)
 
 	server := &http.Server{

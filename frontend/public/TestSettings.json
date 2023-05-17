@@ -1,0 +1,7 @@
+{
+    "test_files": [
+        "test_57_mb.xlsx"
+    ],
+    "go_url": "http://localhost:8080/",
+    "node_url": "http://localhost:8080/"
+}

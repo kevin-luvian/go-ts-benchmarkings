@@ -1,13 +1,22 @@
-var express = require('express');
-const { success } = require('../../internal/app/response');
-var router = express.Router();
+const express = require("express");
+const { success } = require("../../internal/app/response");
 
-router.get('/', function(req, res, next) {
-  res.send('index');
-});
+/**
+ *
+ * @param {import("../usecase").UseCase} useCase
+ */
+const makeRouter = (useCase) => {
+  const router = express.Router();
 
-router.get('/ping', function(req, res, next) {
-  success(res, Date.now(), 'noice');
-});
+  router.get("/", function (req, res, next) {
+    res.send("index");
+  });
 
-module.exports = router;
+  router.get("/ping", function (req, res, next) {
+    success(res, Date.now(), "noice");
+  });
+
+  return router;
+};
+
+module.exports = { makeRouter };

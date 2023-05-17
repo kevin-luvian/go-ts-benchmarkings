@@ -25,3 +25,7 @@ node_modules/
 bin/
 
 .DS_Store
+
+output/
+
+**/*.xlsx

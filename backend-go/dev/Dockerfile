@@ -1,7 +1,7 @@
 # Please keep up to date with the new-version of Golang docker for builder
-FROM golang:1.17
+FROM golang:1.20
 
-RUN go get -u github.com/cosmtrek/air
+RUN go install github.com/cosmtrek/air@latest
 
 RUN mkdir -p /app
 

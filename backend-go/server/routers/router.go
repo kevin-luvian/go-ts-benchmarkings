@@ -21,9 +21,10 @@ func InitRouter(h *handler.Handler) *gin.Engine {
 		AllowMethods:    []string{"POST", "OPTIONS", "GET", "PUT", "DELETE"},
 	}))
 
-	ping := r.Group("/")
+	root := r.Group("/")
 	{
-		h.HandlerPing(ping)
+		h.HandlerPing(root)
+		h.HandlerIngestFile(root)
 	}
 
 	return r

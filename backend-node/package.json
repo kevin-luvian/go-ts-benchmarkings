@@ -5,7 +5,8 @@
   "author": "kevinlh90@gmail.com",
   "license": "MIT",
   "scripts": {
-    "start": "node ./server/index.js"
+    "start": "node ./server/index.js",
+    "play": "node ./dev/playground/index.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
@@ -13,6 +14,11 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "morgan": "^1.10.0",
-    "path": "^0.12.7"
+    "mysql": "^2.18.1",
+    "mysql2": "^3.3.1",
+    "path": "^0.12.7",
+    "sequelize": "^6.31.1",
+    "through2-batch": "^1.1.1",
+    "xlsx-stream-reader": "^1.1.1"
   }
 }

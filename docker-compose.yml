@@ -49,7 +49,25 @@ services:
     restart: unless-stopped
     depends_on:
       - mysql
+
+  # prod-backend-go:
+  #   container_name: prod-backend-go
+  #   platform: linux/amd64
+  #   build:
+  #     context: ./backend-go
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 9001:8000
+  #   volumes:
+  #     - ./backend-go:/app
+  #     - gomodProd:/go/pkg/mod
+  #     - gocacheProd:/root/.cache/go-build
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - mysql
 volumes:
   gomod:
   gocache:
   owomysql:
+  gomodProd:
+  gocacheProd:

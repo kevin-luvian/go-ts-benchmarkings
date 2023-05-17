@@ -1,27 +1,50 @@
+const { readConfigJson, getTestDir } = require("../internal/settings/lazy_config");
 const { Server } = require("../internal/settings/lazy_settings");
-const app = require("./server");
+const { makeApp } = require("./server");
 const http = require("http");
 
 /**
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(Server.httpPort);
-app.set("port", port);
+const main = async () => {
+  const app = await makeApp();
 
-/**
- * Create HTTP server.
- */
+  const port = normalizePort(Server.httpPort);
+  app.set("port", port);
 
-const server = http.createServer(app);
+  /**
+   * Create HTTP server.
+   */
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+  const server = http.createServer(app);
 
-server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
+  /**
+   * Listen on provided port, on all network interfaces.
+   */
+
+  /**
+   * Event listener for HTTP server "listening" event.
+   */
+  function onListening() {
+    const addr = server.address();
+    const bind =
+      typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+    console.log("Listening on " + bind);
+  }
+
+  server.listen(port);
+  server.on("error", onError);
+  server.on("listening", onListening);
+};
+
+(async () => {
+  try {
+    await main();
+  } catch (error) {
+    console.error(error);
+  }
+})();
 
 /**
  * Normalize a port into a number, string, or false.
@@ -67,14 +90,4 @@ function onError(error) {
     default:
       throw error;
   }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  const addr = server.address();
-  const bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
-  console.log("Listening on " + bind);
 }
