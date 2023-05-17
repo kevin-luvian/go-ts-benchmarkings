@@ -24,6 +24,7 @@ const main = async () => {
     await ingestXlsxFile(
       targetFile,
       new XlsxReaderOptions({
+        requestID: "plaground-test",
         tableName: config.tableName,
         sheetName: config.sheet,
         startRow: config.startRow,

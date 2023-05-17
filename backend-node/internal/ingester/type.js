@@ -1,4 +1,5 @@
 class XlsxReaderOptions {
+  requestID = "";
   tableName = "";
   sheetName = "";
   startRow = 0;
@@ -6,17 +7,13 @@ class XlsxReaderOptions {
    * @type {ColumnOption[]}
    */
   columns = [];
-  /**
-   * @type {import("sequelize").Sequelize}
-   */
-  db = null;
 
-  constructor({ tableName, sheetName, startRow, columns, db }) {
+  constructor({ requestID, tableName, sheetName, startRow, columns }) {
+    this.requestID = requestID;
     this.tableName = tableName;
     this.sheetName = sheetName;
     this.startRow = startRow;
     this.columns = columns;
-    this.db = db;
   }
 }
 

@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,6 +13,7 @@ func getFEPublicDir() string {
 		panic(err)
 	}
 	fp := filepath.Join(cwd, "../frontend/public")
+	fmt.Println("Public File Path", fp)
 	return fp
 }
 

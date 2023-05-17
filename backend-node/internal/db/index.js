@@ -1,6 +1,11 @@
 const mysql = require("mysql");
 const Sequelize = require("sequelize");
-const { Database } = require("../settings/lazy_settings");
+const { Database } = require("../settings/settings");
+
+/**
+ * @type {Sequelize.Sequelize}
+ */
+let conn = null;
 
 const connect = () =>
   mysql.createPool({
@@ -18,14 +23,18 @@ const connectSequelize = async () => {
     Database.user,
     Database.password,
     {
+      host: Database.host,
       port: Database.port,
       dialect: "mysql",
-      "logging": false
+      logging: false,
     }
   );
   await sq.authenticate();
   console.log("Connected!!");
+  conn = sq;
   return sq;
 };
 
-module.exports = { connect, connectSequelize };
+const getConn = () => conn;
+
+module.exports = { connect, connectSequelize, getConn };

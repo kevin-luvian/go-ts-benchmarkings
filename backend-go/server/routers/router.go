@@ -24,7 +24,7 @@ func InitRouter(h *handler.Handler) *gin.Engine {
 	root := r.Group("/")
 	{
 		h.HandlerPing(root)
-		h.HandlerIngestFile(root)
+		h.HandlerIngestFile57(root)
 	}
 
 	return r

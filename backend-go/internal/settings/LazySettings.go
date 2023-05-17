@@ -1,6 +1,12 @@
 package settings
 
-import "time"
+import (
+	"log"
+	"os"
+	"time"
+
+	"github.com/joho/godotenv"
+)
 
 type ServerSetting struct {
 	ENV          string
@@ -41,3 +47,22 @@ var (
 		MaxLifetime: 5 * time.Minute,
 	}
 )
+
+func setOrDefault(value string, def string) string {
+	if value == "" {
+		return def
+	}
+	return value
+}
+
+func Init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file", err)
+	}
+
+	Server.ENV = setOrDefault(os.Getenv("ENV"), Server.ENV)
+	Server.RunMode = setOrDefault(os.Getenv("RUN_MODE"), Server.RunMode)
+
+	Database.URL = setOrDefault(os.Getenv("DATABASE_URL"), Database.URL)
+}

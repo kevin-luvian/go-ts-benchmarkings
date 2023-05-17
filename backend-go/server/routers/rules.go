@@ -14,7 +14,7 @@ func CreateCORSRule(urls []string) []*regexp.Regexp {
 
 		reg, err := regexp.Compile(c)
 		if err != nil {
-			fmt.Errorf("Error compiling cors url=%s, err=%v", c, err)
+			fmt.Println(fmt.Sprintf("Error compiling cors url=%s, err=%v", c, err))
 			continue
 		}
 		matcher = append(matcher, reg)

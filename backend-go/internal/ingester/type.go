@@ -2,15 +2,30 @@ package ingester
 
 import (
 	"benchgo/internal/db"
-	"sync"
 
 	"github.com/jmoiron/sqlx"
 )
 
+type ReadOpts struct {
+	SheetName string
+	StartRow  int
+	Sigterm   chan struct{}
+}
+
 type TransformOpts struct {
-	Wg             *sync.WaitGroup
-	Header         []string
+	Concurrency    int
 	ColumnMappings []ColumnMapping
+}
+
+type BatchingOpts struct {
+	Concurrency int
+	BatchSize   int
+}
+
+type WriterOpts struct {
+	Concurrency int
+	TableName   string
+	Transaction *sqlx.Tx
 }
 
 type ReportConfig struct {
@@ -29,13 +44,6 @@ type ColumnMapping struct {
 	Transformer func(string) any
 }
 
-type WriterOpts struct {
-	ID          int
-	Wg          *sync.WaitGroup
-	TableName   string
-	Transaction *sqlx.Tx
-}
-
 type WriterResponse struct {
 	ID           int
 	RowsAffected int64
@@ -44,6 +52,7 @@ type WriterResponse struct {
 }
 
 type ReadXlsxOpts struct {
+	RequestID      string
 	TableName      string
 	DB             *db.DB
 	SheetName      string

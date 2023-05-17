@@ -1,5 +1,8 @@
-const { readConfigJson, getTestDir } = require("../internal/settings/lazy_config");
-const { Server } = require("../internal/settings/lazy_settings");
+const {
+  readConfigJson,
+  getTestDir,
+} = require("../internal/settings/lazy_config");
+const { Server, Database, init } = require("../internal/settings/settings");
 const { makeApp } = require("./server");
 const http = require("http");
 
@@ -8,6 +11,7 @@ const http = require("http");
  */
 
 const main = async () => {
+  init();
   const app = await makeApp();
 
   const port = normalizePort(Server.httpPort);

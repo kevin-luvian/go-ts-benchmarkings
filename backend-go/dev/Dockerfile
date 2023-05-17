@@ -6,3 +6,5 @@ RUN go install github.com/cosmtrek/air@latest
 RUN mkdir -p /app
 
 WORKDIR /app
+
+COPY .env .env

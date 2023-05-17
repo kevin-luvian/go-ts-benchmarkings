@@ -7,6 +7,7 @@ const {
 } = require("stream");
 const through2Batch = require("through2-batch");
 const XlsxStreamReader = require("xlsx-stream-reader");
+const { conn, getConn } = require("../db");
 const QueryTypes = require("sequelize").QueryTypes;
 
 const STREAM_BATCH_SIZE = 1000;
@@ -22,7 +23,8 @@ const STREAM_BATCH_SIZE = 1000;
  * @param {XlsxReaderOptions} opts
  */
 const ingestXlsxFile = async (filePath, opts) => {
-  const transaction = await opts.db.transaction();
+  console.log("ingesting file started by", opts.requestID);
+  const transaction = await getConn().transaction();
   try {
     let processed = 0;
     await pipeline(
@@ -40,14 +42,14 @@ const ingestXlsxFile = async (filePath, opts) => {
         objectMode: true,
         async transform(chunk, _ec, cb) {
           processed += chunk.length;
-          if (processed % 10000 == 0) {
-            console.log("Processed:", processed);
+          if (processed % 50000 == 0) {
+            console.log(`Request ${opts.requestID} Processed: ${processed}`);
           }
+          cb(null, chunk);
         },
       }),
       makeDBWriter({
         tableName: opts.tableName,
-        db: opts.db,
         transaction: transaction,
       })
     );
@@ -61,11 +63,10 @@ const ingestXlsxFile = async (filePath, opts) => {
 /**
  * @param {Object} param0
  * @param {string} param0.tableName
- * @param {Sequelize} param0.db
  * @param {Transaction} param0.transaction
  * @return {Writable}
  */
-const makeDBWriter = ({ tableName, db, transaction }) => {
+const makeDBWriter = ({ tableName, transaction }) => {
   return new Writable({
     objectMode: true,
     async write(chunk, _ec, cb) {
@@ -75,7 +76,7 @@ const makeDBWriter = ({ tableName, db, transaction }) => {
         for (let i = 0; i < chunk.length; i++) {
           values[i] = Object.values(chunk[i]);
         }
-        await db.query(
+        await getConn().query(
           `INSERT INTO ${tableName} (${columns.join(",")}) VALUES ?`,
           {
             replacements: [values],
@@ -105,6 +106,8 @@ const makeXLSXReader = ({
   columns = [],
 }) => {
   const workBookReaderStream = new XlsxStreamReader();
+
+  workBookReaderStream.setMaxListeners(0);
 
   workBookReaderStream.on("worksheet", (workSheetReader) => {
     let colLookup = [];
@@ -139,6 +142,10 @@ const makeXLSXReader = ({
       );
 
       workBookReaderStream.emit("data", jsonObject);
+    });
+
+    workSheetReader.on("error", (error) => {
+      workBookReaderStream.emit("error", error);
     });
 
     // call process after registering handlers
