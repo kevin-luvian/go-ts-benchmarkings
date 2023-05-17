@@ -43,14 +43,19 @@ func main() {
 	targetFile := filepath.Join(settings.GetTestDir(), "test_57_mb.xlsx")
 	fmt.Println("Target file:", targetFile)
 
-	err = ingester.ReadXlsx(targetFile, ingester.ReadXlsxOpts{
+	total, err := ingester.ReadXlsx(targetFile, ingester.ReadXlsxOpts{
 		DB:             db,
 		TableName:      faspayConfig.TableName,
 		SheetName:      faspayConfig.Sheet,
 		StartRow:       faspayConfig.StartRow,
 		ColumnMappings: faspayConfig.Columns,
+		Callback: func(total int64) {
+			fmt.Println("Processing ID playground Total:", total)
+		},
 	})
 	if err != nil {
-		fmt.Println("ReadXLSX Error:", err)
+		fmt.Println("ReadXLSX Error:", err, "Total:", total)
+	} else {
+		fmt.Println("ReadXLSX Success Total:", total)
 	}
 }

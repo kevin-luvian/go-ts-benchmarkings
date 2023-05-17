@@ -5,10 +5,11 @@ go 1.20
 require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.0
+	github.com/gomodule/redigo v1.8.9
+	github.com/joho/godotenv v1.5.1
 )
 
 require (
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.3 // indirect
