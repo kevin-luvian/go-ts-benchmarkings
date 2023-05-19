@@ -8,11 +8,14 @@ const {
   XlsxReaderOptions,
   ReportConfig,
 } = require("../../internal/ingester/type");
+const { init, Server } = require("../../internal/settings");
 const { connectSequelize } = require("../../internal/db");
 
 const main = async () => {
+  init();
+
   const targetFile = path.join(getTestDir(), "test_57_mb.xlsx");
-  console.info("Target file:", targetFile);
+  console.info("Server ID:", Server.id, "Target file:", targetFile);
 
   const db = await connectSequelize();
 
@@ -30,6 +33,7 @@ const main = async () => {
         startRow: config.startRow,
         columns: config.columns,
         db: db,
+        callback: (total) => {},
       })
     );
   } catch (error) {
@@ -37,6 +41,8 @@ const main = async () => {
   }
 
   console.log(" === Done === ");
+
+  while (true) {}
 };
 
 (async () => {

@@ -16,7 +16,6 @@ type ServerSetting struct {
 	HttpPort     int
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
-	CORS         string
 }
 
 type DatabaseSetting struct {
@@ -45,7 +44,6 @@ var (
 		HttpPort:     8000,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,
-		CORS:         "*",
 	}
 
 	Database = &DatabaseSetting{

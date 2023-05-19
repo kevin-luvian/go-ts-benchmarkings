@@ -4,12 +4,14 @@ import (
 	"benchgo/internal/ingester"
 	"benchgo/internal/redis"
 	"benchgo/server/entity"
+	"time"
 )
 
 func (uc *UseCase) IngestFaspayFile(filePath string, requestID string) error {
 	result := entity.IngestResult{
 		RequestID: requestID,
 		Total:     0,
+		Ts:        time.Now().UnixMilli(),
 		Done:      false,
 		Error:     "",
 	}
@@ -23,15 +25,18 @@ func (uc *UseCase) IngestFaspayFile(filePath string, requestID string) error {
 		ColumnMappings: uc.config.Columns,
 		Callback: func(total int64) {
 			result.Total = total
-			redis.RPush(result)
+			result.Ts = time.Now().UnixMilli()
+			redis.RPushStruct(result)
 		},
 	})
 
+	result.Done = true
+	result.Ts = time.Now().UnixMilli()
 	result.Total = total
 	if err != nil {
 		result.Error = err.Error()
 	}
 
-	redis.RPush(result)
+	redis.RPushStruct(result)
 	return err
 }

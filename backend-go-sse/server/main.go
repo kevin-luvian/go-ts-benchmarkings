@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 
+	"ssego/internal/orchestrator"
+	"ssego/internal/redis"
 	"ssego/internal/settings"
 	handler "ssego/server/handlers"
 	"ssego/server/routers"
@@ -15,11 +17,30 @@ import (
 
 func init() {
 	settings.Init()
+	err := redis.Setup(redis.RedisOpts{
+		QueueName:   settings.Redis.QueueName,
+		Host:        settings.Redis.Host,
+		Password:    settings.Redis.Password,
+		MaxIdle:     settings.Redis.MaxIdle,
+		MaxActive:   settings.Redis.MaxActive,
+		IdleTimeout: settings.Redis.IdleTimeout,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println("settings initialized", settings.Server.ENV)
 }
 
 func main() {
 	gin.SetMode(settings.Server.RunMode)
+
+	// start SSE orchestrators
+	orch := orchestrator.Get()
+	orch.StartTicker(func() string {
+		str, _ := redis.LPop()
+		return str
+	})
 
 	uc := usecase.New(usecase.Dependencies{})
 

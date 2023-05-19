@@ -6,11 +6,12 @@ const {
   Writable,
 } = require("stream");
 const through2Batch = require("through2-batch");
-const XlsxStreamReader = require("xlsx-stream-reader");
-const { conn, getConn } = require("../db");
+const XlsxStreamReader = require("./lib/mod-xlsx-stream-reader");
+const { getConn } = require("../db");
+const EventEmitter = require("events");
 const QueryTypes = require("sequelize").QueryTypes;
 
-const STREAM_BATCH_SIZE = 1000;
+const STREAM_BATCH_SIZE = 500;
 
 /**
  * @typedef {import("./type").XlsxReaderOptions} XlsxReaderOptions
@@ -24,39 +25,39 @@ const STREAM_BATCH_SIZE = 1000;
  */
 const ingestXlsxFile = async (filePath, opts) => {
   console.log("ingesting file started by", opts.requestID);
+  const sigtermEmitter = new EventEmitter();
   const transaction = await getConn().transaction();
   try {
-    let processed = 0;
+    let total = 0;
     await pipeline(
       makeXLSXReader({
         filePath,
         sheetName: opts.sheetName,
         startRow: opts.startRow,
         columns: opts.columns,
+        sigtermEmitter: sigtermEmitter,
       }),
       makeXLSXTransformer({
         columns: opts.columns,
       }),
       through2Batch.obj({ batchSize: STREAM_BATCH_SIZE }),
-      new Transform({
-        objectMode: true,
-        async transform(chunk, _ec, cb) {
-          processed += chunk.length;
-          if (processed % 50000 == 0) {
-            console.log(`Request ${opts.requestID} Processed: ${processed}`);
-          }
-          cb(null, chunk);
-        },
-      }),
       makeDBWriter({
         tableName: opts.tableName,
         transaction: transaction,
+        resultCallback: (processed) => {
+          total += processed;
+          opts.callback(total);
+          return total;
+        },
       })
     );
     await transaction.commit();
   } catch (error) {
+    sigtermEmitter.emit("sigterm");
     await transaction.rollback();
     throw error;
+  } finally {
+    sigtermEmitter.removeAllListeners("sigterm");
   }
 };
 
@@ -64,9 +65,10 @@ const ingestXlsxFile = async (filePath, opts) => {
  * @param {Object} param0
  * @param {string} param0.tableName
  * @param {Transaction} param0.transaction
+ * @param {function(number):void} param0.resultCallback
  * @return {Writable}
  */
-const makeDBWriter = ({ tableName, transaction }) => {
+const makeDBWriter = ({ tableName, transaction, resultCallback }) => {
   return new Writable({
     objectMode: true,
     async write(chunk, _ec, cb) {
@@ -84,6 +86,10 @@ const makeDBWriter = ({ tableName, transaction }) => {
             type: QueryTypes.INSERT,
           }
         );
+        resultCallback(chunk.length);
+        // if (total >= 100_000) {
+        //   return cb(new Error("test"));
+        // }
         cb();
       } catch (error) {
         cb(error);
@@ -95,7 +101,8 @@ const makeDBWriter = ({ tableName, transaction }) => {
 /**
  * Read from xlsx file and return a stream of json object.
  * Should transform it with makeXLSXTransformer to get the desired data types.
- * @param {Object} config
+ * @param {Object} param0
+ * @param {EventEmitter} param0.sigtermEmitter
  * @return {Transform}
  */
 const makeXLSXReader = ({
@@ -104,10 +111,16 @@ const makeXLSXReader = ({
   startRow = 1,
   fileBufferSize = 512 * 1024,
   columns = [],
+  sigtermEmitter = null,
 }) => {
-  const workBookReaderStream = new XlsxStreamReader();
+  if (!sigtermEmitter) {
+    throw new Error(
+      "signal termination emitter not setup properly!! will cause running processes!!"
+    );
+  }
 
-  workBookReaderStream.setMaxListeners(0);
+  const workBookReaderStream = new XlsxStreamReader();
+  workBookReaderStream.setMaxListeners(10);
 
   workBookReaderStream.on("worksheet", (workSheetReader) => {
     let colLookup = [];
@@ -118,6 +131,12 @@ const makeXLSXReader = ({
       return;
     }
 
+    // abort the sheet reader stream
+    sigtermEmitter.addListener("sigterm", () => {
+      workSheetReader.abort();
+    });
+
+    let total = 0;
     workSheetReader.on("row", (row) => {
       if (row.attributes.r < headerRowPos) {
         return;
@@ -141,26 +160,31 @@ const makeXLSXReader = ({
         {}
       );
 
-      workBookReaderStream.emit("data", jsonObject);
-    });
+      if (total % 100 == 0 && total >= 19700) {
+        console.log("still emitting data", total);
+      }
 
-    workSheetReader.on("error", (error) => {
-      workBookReaderStream.emit("error", error);
+      workBookReaderStream.emit("data", jsonObject);
     });
 
     // call process after registering handlers
     workSheetReader.process();
   });
 
-  return asyncPipeline(
-    fs.createReadStream(filePath, { highWaterMark: fileBufferSize }),
-    workBookReaderStream,
-    (err) => {
-      if (err) {
-        console.error("XlsxStreamReader failed", err);
-      }
+  const readable = fs.createReadStream(filePath, {
+    highWaterMark: fileBufferSize,
+  });
+
+  // abort the file readable stream
+  sigtermEmitter.addListener("sigterm", () => {
+    readable.destroy();
+  });
+
+  return asyncPipeline(readable, workBookReaderStream, (err) => {
+    if (err) {
+      console.error("XlsxStreamReader failed", err);
     }
-  );
+  });
 };
 
 /**

@@ -7,13 +7,28 @@ class XlsxReaderOptions {
    * @type {ColumnOption[]}
    */
   columns = [];
+  /**
+   * @param {number} total
+   */
+  callback = async (total) => {};
 
-  constructor({ requestID, tableName, sheetName, startRow, columns }) {
+  /**
+   * @param {XlsxReaderOptions} param0
+   */
+  constructor({
+    requestID,
+    tableName,
+    sheetName,
+    startRow,
+    columns,
+    callback,
+  }) {
     this.requestID = requestID;
     this.tableName = tableName;
     this.sheetName = sheetName;
     this.startRow = startRow;
     this.columns = columns;
+    this.callback = callback;
   }
 }
 

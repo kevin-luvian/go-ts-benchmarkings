@@ -42,30 +42,11 @@ func (h *Handler) HandlerPing(r gin.IRoutes) gin.IRoutes {
 
 func (h *Handler) HandlerIngestFile57(r gin.IRoutes) gin.IRoutes {
 	return r.GET("/ingest-57", func(c *gin.Context) {
-		requestID := getRequestID(c, "ingest-57-")
-		h.IngestIt(c, filepath.Join(h.testDir, "test_57_mb.xlsx"), requestID)
+		requestID := c.Query("id")
+		if requestID == "" {
+			app.Error(c, 0, 400, fmt.Errorf("request id is required"))
+		}
+		go h.uc.IngestFaspayFile(filepath.Join(h.testDir, "test_57_mb.xlsx"), requestID)
+		app.Success(c, 0, map[string]interface{}{})
 	})
-}
-
-func (h *Handler) IngestIt(c *gin.Context, filePath string, requestID string) {
-	start := time.Now()
-
-	fmt.Println("Ingesting file", filePath)
-	err := h.uc.IngestFaspayFile(filePath, requestID)
-	if err != nil {
-		app.Error(c, collectTS(start), 400, err)
-		return
-	}
-
-	app.Success(c, collectTS(start), map[string]interface{}{
-		"ok": true,
-	})
-}
-
-func getRequestID(c *gin.Context, prefix string) string {
-	requestID := c.Query("id")
-	if requestID == "" {
-		requestID = "0"
-	}
-	return prefix + requestID
 }

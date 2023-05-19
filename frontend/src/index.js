@@ -1,4 +1,3 @@
-import React from "react";
 import App from "./jsx/App";
 import { createRoot } from "react-dom/client";
 

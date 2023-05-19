@@ -3,6 +3,7 @@ package redis
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	gtime "time"
 
 	gredis "github.com/gomodule/redigo/redis"
@@ -56,6 +57,8 @@ func Setup(opts RedisOpts) error {
 	if err := Ping(); err != nil {
 		return err
 	}
+
+	fmt.Println("redis initialized")
 	return nil
 }
 
@@ -187,7 +190,7 @@ func LikeDeletes(key string) error {
 	return nil
 }
 
-func RPush(v any) error {
+func RPush(v string) error {
 	conn := gredisPool.Get()
 	defer conn.Close()
 

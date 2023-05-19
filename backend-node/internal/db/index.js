@@ -29,8 +29,9 @@ const connectSequelize = async () => {
       logging: false,
     }
   );
+  console.log("DBHost:Port", Database.host, Database.port);
   await sq.authenticate();
-  console.log("Connected!!");
+  console.log("DB Connected!!");
   conn = sq;
   return sq;
 };

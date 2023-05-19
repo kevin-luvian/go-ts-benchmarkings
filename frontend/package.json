@@ -6,6 +6,7 @@
   "author": "kevinlh90@gmail.com",
   "license": "MIT",
   "scripts": {
+    "debug": "webpack-dev-server --open",
     "serve": "webpack serve",
     "start": "webpack-dev-server --open",
     "build": "webpack --mode production",

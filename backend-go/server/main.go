@@ -8,6 +8,7 @@ import (
 
 	iDB "benchgo/internal/db"
 	"benchgo/internal/ingester"
+	"benchgo/internal/redis"
 	"benchgo/internal/settings"
 	handler "benchgo/server/handlers"
 	"benchgo/server/routers"
@@ -18,6 +19,14 @@ import (
 
 func init() {
 	settings.Init()
+	redis.Setup(redis.RedisOpts{
+		Host:        settings.Redis.Host,
+		Password:    settings.Redis.Password,
+		QueueName:   settings.Redis.QueueName,
+		MaxIdle:     settings.Redis.MaxIdle,
+		IdleTimeout: settings.Redis.IdleTimeout,
+		MaxActive:   settings.Redis.MaxActive,
+	})
 	fmt.Println("settings initialized", settings.Server.ENV)
 }
 

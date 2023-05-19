@@ -18,6 +18,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.3.1",
     "path": "^0.12.7",
+    "redis": "^4.6.6",
     "sequelize": "^6.31.1",
     "through2-batch": "^1.1.1",
     "xlsx-stream-reader": "^1.1.1"

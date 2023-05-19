@@ -66,8 +66,6 @@ func Open(sourceURL string, retries int) (*sqlx.DB, error) {
 		connURL = fmt.Sprintf("%s@(%s:%s)/%s", u.User.String(), u.Hostname(), u.Port(), u.Path[1:])
 	}
 
-	fmt.Println("connecting to", connURL)
-
 	for retries > 0 {
 		retries--
 
