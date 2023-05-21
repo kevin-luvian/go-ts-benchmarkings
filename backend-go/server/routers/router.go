@@ -24,6 +24,7 @@ func InitRouter(h *handler.Handler) *gin.Engine {
 	{
 		h.HandlerPing(root)
 		h.HandlerIngestFile57(root)
+		h.HandlerPanic(root)
 	}
 
 	return r

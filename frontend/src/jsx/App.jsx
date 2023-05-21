@@ -11,7 +11,7 @@ const { Header, Content } = Layout;
 const App = () => {
   const {
     start: startOrc,
-    stop: stopOrc,
+    panic: panicOrc,
     isDone: isOrcDone,
     requests,
     histories,
@@ -20,9 +20,10 @@ const App = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [inpConfig, setInpConfig] = useState({
     url: "",
-    sseurl: "",
-    numOfRequests: 5,
-    concurrency: 3,
+    sseurl: "http://localhost:9003/sse",
+    numOfRequests: 1,
+    concurrency: 1,
+    limit: 5000,
   });
 
   const pp = Math.floor(
@@ -46,14 +47,14 @@ const App = () => {
       url: inpConfig.url,
       sseURL: inpConfig.sseurl,
       numOfRequests: inpConfig.numOfRequests,
+      limit: inpConfig.limit,
       concurrency: inpConfig.concurrency,
       prefix: "owo-" + Math.random().toString(36).substring(2, 5),
     });
   };
 
-  const handleAbort = () => {
-    setIsProcessing(false);
-    stopOrc();
+  const handleAbort = async () => {
+    await panicOrc();
   };
 
   return (
@@ -70,7 +71,7 @@ const App = () => {
             level={4}
             style={{ color: "white", margin: 0, marginLeft: "1rem" }}
           >
-            OwO Benchmarker V0.4
+            OwO Benchmarker V0.7.0
           </Title>
         </Header>
         <Content style={{ padding: "2rem 3rem", height: "100%" }}>

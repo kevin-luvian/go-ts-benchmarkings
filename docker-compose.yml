@@ -20,6 +20,7 @@ services:
     command: [ "redis-server", "/etc/redis/redis.conf" ]
     volumes:
       - ./redis.conf:/etc/redis/redis.conf
+      - oworedis:/data
     restart: unless-stopped
     ports:
       - 9101:6379
@@ -108,5 +109,6 @@ volumes:
   gomod:
   gocache:
   owomysql:
+  oworedis:
   gomodSSE:
   gocacheSSE:

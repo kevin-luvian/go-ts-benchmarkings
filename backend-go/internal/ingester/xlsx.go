@@ -3,7 +3,6 @@ package ingester
 import (
 	"benchgo/internal/db"
 	"fmt"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -13,10 +12,10 @@ import (
 
 func ReadXlsx(filePath string, opts ReadXlsxOpts) (int64, error) {
 	var (
-		CONCURRENT_TRANSFORMERS = runtime.GOMAXPROCS(0)
-		CONCURRENT_WRITERS      = 2 * runtime.GOMAXPROCS(0)
-		CONCURRENT_BATCHERS     = 2
-		CONCURRENT_BATCH_SIZE   = 500
+		CONCURRENT_TRANSFORMERS = 4
+		CONCURRENT_WRITERS      = 8
+		CONCURRENT_BATCHERS     = 1
+		CONCURRENT_BATCH_SIZE   = 1000
 	)
 	fmt.Println("starting to ingest file with request id", opts.RequestID)
 
@@ -26,20 +25,16 @@ func ReadXlsx(filePath string, opts ReadXlsxOpts) (int64, error) {
 		fmt.Println("Time taken: ", end, "s")
 	}()
 
-	// Create an instance of the reader by opening a target file
-	xl, err := xlsxreader.OpenFile(filePath)
-	if err != nil {
-		return 0, err
-	}
-	defer xl.Close()
-
 	// signal termination in case of error detected
 	sigterm := make(chan struct{})
-	rowsChan, header := sheetReader(xl, ReadOpts{
+	rowsChan, header, err := streamSheetReader(filePath, ReadOpts{
 		SheetName: opts.SheetName,
 		StartRow:  opts.StartRow,
 		Sigterm:   sigterm,
 	})
+	if err != nil {
+		return 0, err
+	}
 
 	transformChan := concurrentTransform(rowsChan, TransformOpts{
 		Concurrency:    CONCURRENT_TRANSFORMERS,
@@ -56,34 +51,35 @@ func ReadXlsx(filePath string, opts ReadXlsxOpts) (int64, error) {
 		Concurrency: CONCURRENT_WRITERS,
 		TableName:   opts.TableName,
 		Transaction: tx,
-		Sigterm:     sigterm,
 	})
 
+	total := int64(0)
 	abort := func() {
 		close(sigterm)
 		// sink the last channel
 		for w := range writerChan {
-			sink(w)
+			total += w.RowsAffected
+			opts.Callback(total)
 		}
-		tx.Rollback()
 	}
 
-	total := int64(0)
 	for res := range writerChan {
 		total += res.RowsAffected
 		if res.Error != nil {
 			abort()
-			return total, fmt.Errorf("test error")
+			tx.Rollback()
+			return total, err
 		}
-		// if total >= 100_000 {
-		// 	abort()
-		// 	return total, fmt.Errorf("test error")
-		// }
-		// if total%2000 == 0 {
-		// fmt.Println("RequestID:", opts.RequestID, "Processing:", total)
-		// }
 
-		opts.Callback(total)
+		isDone := opts.Callback(total)
+		if isDone {
+			abort()
+			break
+		}
+
+		if total%1000 == 0 {
+			fmt.Println("Processed", total, "rows")
+		}
 	}
 
 	err = tx.Commit()
@@ -135,36 +131,8 @@ func transformHeader(headers []string, columnMappings []ColumnMapping) []ColumnM
 	return columnMappings
 }
 
-func sheetReader(xl *xlsxreader.XlsxFileCloser, opts ReadOpts) (<-chan xlsxreader.Row, []string) {
-	headerChan := make(chan []string, 1)
-	out := make(chan xlsxreader.Row, 100)
-
-	go func() {
-		defer func() {
-			close(out)
-			// fmt.Println("Reads completed, channel closed")
-		}()
-
-		for row := range xl.ReadRows(opts.SheetName) {
-			if row.Index >= opts.StartRow {
-				select {
-				case out <- row:
-				case <-opts.Sigterm:
-					return
-				}
-			}
-
-			if row.Index == opts.StartRow-1 {
-				headerChan <- cellsToArr(row.Cells)
-			}
-		}
-	}()
-
-	return out, <-headerChan
-}
-
-func concurrentTransform(in <-chan xlsxreader.Row, opts TransformOpts) <-chan map[string]any {
-	out := make(chan map[string]any, 500)
+func concurrentTransform(in <-chan []string, opts TransformOpts) <-chan map[string]any {
+	out := make(chan map[string]any, 200)
 	wg := sync.WaitGroup{}
 
 	for i := 0; i < opts.Concurrency; i++ {
@@ -174,14 +142,19 @@ func concurrentTransform(in <-chan xlsxreader.Row, opts TransformOpts) <-chan ma
 
 		ChanLoop:
 			for row := range in {
-				cells := cellsToArr(row.Cells)
+				if len(out) > 0 {
+					fmt.Println("Transform", len(out), "buffered")
+				}
+				if len(in) > 0 {
+					fmt.Println("Reads", len(out), "buffered")
+				}
 				objMap := make(map[string]any)
 
 				for _, mapping := range opts.ColumnMappings {
-					if len(cells) <= mapping.Position {
+					if len(row) <= mapping.Position {
 						continue ChanLoop
 					}
-					objMap[mapping.Name] = mapping.Transformer(cells[mapping.Position])
+					objMap[mapping.Name] = mapping.Transformer(row[mapping.Position])
 				}
 				out <- objMap
 			}
@@ -191,7 +164,6 @@ func concurrentTransform(in <-chan xlsxreader.Row, opts TransformOpts) <-chan ma
 	go func() {
 		wg.Wait()
 		close(out)
-		// fmt.Println("Transform completed, channel closed")
 	}()
 
 	return out
@@ -208,6 +180,9 @@ func concurrentBatch[T any](input <-chan T, opts BatchingOpts) <-chan []T {
 
 			batch := make([]T, 0, opts.BatchSize)
 			for item := range input {
+				if len(out) > 0 {
+					fmt.Println("Batching", len(out), "buffered")
+				}
 				batch = append(batch, item)
 
 				if len(batch) == opts.BatchSize {
@@ -225,14 +200,13 @@ func concurrentBatch[T any](input <-chan T, opts BatchingOpts) <-chan []T {
 	go func() {
 		wg.Wait()
 		close(out)
-		// fmt.Println("Batching completed, channel closed")
 	}()
 
 	return out
 }
 
 func concurrentWriter(in <-chan []map[string]any, opts WriterOpts) <-chan WriterResponse {
-	out := make(chan WriterResponse, 10)
+	out := make(chan WriterResponse, 20)
 	wg := sync.WaitGroup{}
 
 	for i := 0; i < opts.Concurrency; i++ {
@@ -241,9 +215,9 @@ func concurrentWriter(in <-chan []map[string]any, opts WriterOpts) <-chan Writer
 			defer wg.Done()
 
 			for batch := range in {
-				// if len(out) > 0 {
-				// 	fmt.Println("Writes", len(out), "buffered")
-				// }
+				if len(out) > 0 {
+					fmt.Println("Writes", len(out), "buffered")
+				}
 
 				lastRowId, err := db.BulkInsertMap(opts.TableName, batch, opts.Transaction)
 				response := WriterResponse{
@@ -251,12 +225,7 @@ func concurrentWriter(in <-chan []map[string]any, opts WriterOpts) <-chan Writer
 					LastRowId:    lastRowId,
 					Error:        err,
 				}
-
-				select {
-				case out <- response:
-				case <-opts.Sigterm:
-					return
-				}
+				out <- response
 			}
 		}()
 	}

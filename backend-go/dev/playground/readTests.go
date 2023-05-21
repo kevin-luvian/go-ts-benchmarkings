@@ -49,8 +49,14 @@ func main() {
 		SheetName:      faspayConfig.Sheet,
 		StartRow:       faspayConfig.StartRow,
 		ColumnMappings: faspayConfig.Columns,
-		Callback: func(total int64) {
+		Callback: func(total int64) bool {
 			fmt.Println("Processing ID playground Total:", total)
+
+			if total > 10000 {
+				return false
+			}
+
+			return true
 		},
 	})
 	if err != nil {

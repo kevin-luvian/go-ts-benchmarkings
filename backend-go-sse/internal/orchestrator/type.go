@@ -9,9 +9,19 @@ type Orchestrator struct {
 }
 
 type Worker struct {
-	source    chan []string
+	source          chan []string
+	metricSource    chan string
+	stop            chan struct{}
+	finish          chan struct{}
+	ID              int
+	OnReceive       func([]string)
+	OnReceiveMetric func(string)
+}
+
+type MetricsWorker struct {
+	source    chan string
 	stop      chan struct{}
 	finish    chan struct{}
 	ID        int
-	OnReceive func([]string)
+	OnReceive func(string)
 }

@@ -12,21 +12,25 @@ class SSEController {
   listen(url) {
     this.source = new EventSource(url);
 
-    this.source.onmessage = (e) => this.ingest(e);
-    this.source.addEventListener("data", (e) => this.ingest(e));
+    // this.source.onmessage = (e) => this.ingest(e);
+    this.source.addEventListener("data", (e) => this.ingest(e.data));
 
-    this.source.onerror = (err) => this.emitter.emit("error", err);
+    // this.source.onerror = (err) => this.emitter.emit("error", err);
     this.source.addEventListener("error", (err) =>
       this.emitter.emit("error", err)
     );
+
+    this.source.addEventListener("metrics", (e) => {
+      this.emitter.emit("metrics", e.data);
+    });
   }
 
   close() {
     this.source?.close();
   }
 
-  ingest(e) {
-    this.emitter.emit("data", e.data);
+  ingest(data) {
+    this.emitter.emit("data", data);
   }
 }
 

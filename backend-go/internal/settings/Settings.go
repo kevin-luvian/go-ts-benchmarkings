@@ -21,7 +21,6 @@ type ServerSetting struct {
 
 type DatabaseSetting struct {
 	URL         string
-	DOCKERURL   string
 	Retries     int
 	MaxActive   int
 	MaxIdle     int
@@ -52,10 +51,9 @@ var (
 	Database = &DatabaseSetting{
 		URL: "mysql://user:password@localhost:9100/database",
 		// URL:         "mysql://user:password@host.docker.internal:3306/database",
-		DOCKERURL:   "mysql://user:password@host.docker.internal:3306/database",
 		Retries:     3,
-		MaxActive:   10,
-		MaxIdle:     5,
+		MaxActive:   15,
+		MaxIdle:     7,
 		MaxLifetime: 5 * time.Minute,
 	}
 

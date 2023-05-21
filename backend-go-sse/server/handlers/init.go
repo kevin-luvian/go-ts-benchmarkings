@@ -38,61 +38,41 @@ func (h *Handler) HandlerPing(r gin.IRoutes) gin.IRoutes {
 	})
 }
 
-func (h *Handler) HandlerSSEPooling2(r gin.IRoutes) gin.IRoutes {
-	return r.GET("/sse", func(c *gin.Context) {
-		statsTicker := time.NewTicker(1 * time.Second)
-		defer statsTicker.Stop()
-
-		c.Stream(func(w io.Writer) bool {
-			select {
-			case <-statsTicker.C:
-				c.SSEvent("stats", "1234")
-			}
-			return true
-		})
-	})
-}
-
 func (h *Handler) HandlerSSEPooling(r gin.IRoutes) gin.IRoutes {
 	return r.GET("/sse", func(c *gin.Context) {
-		// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		// c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		c.Writer.Header().Set("Content-Type", "text/event-stream")
 		c.Writer.Header().Set("Cache-Control", "no-cache")
 		c.Writer.Header().Set("Connection", "keep-alive")
 		c.Writer.Header().Set("Transfer-Encoding", "chunked")
 
-		clientChan := make(chan string, 5)
-		orch := orchestrator.Get()
-		workerID := orch.CreateWorker(func(msgs []string) {
-			for _, msg := range msgs {
-				clientChan <- msg
-			}
-		})
-		fmt.Println("Client connected, worker ID:", workerID)
+		clientChan := make(chan []string, 5)
+		metricsChan := make(chan string, 5)
 
+		orch := orchestrator.Get()
+		workerID := orch.CreateWorker(clientChan, metricsChan)
+		fmt.Println("Client connected, worker ID:", workerID)
+		// Stream message to client from message channel
 		c.Stream(func(w io.Writer) bool {
-			// Stream message to client from message channel
-			if msg, ok := <-clientChan; ok {
-				fmt.Println("Sending message to client", msg)
-				c.SSEvent("data", msg)
-				return true
+			for {
+				select {
+				case msgs := <-clientChan:
+					for _, msg := range msgs {
+						fmt.Println("Sending message to client", msg)
+						c.SSEvent("data", msg)
+					}
+					return true
+				case msg := <-metricsChan:
+					c.SSEvent("metrics", msg)
+					return true
+				case <-c.Writer.CloseNotify():
+					return false
+				default:
+					time.Sleep(10 * time.Millisecond)
+				}
 			}
-			return false
 		})
 
 		orch.StopWorker(workerID)
 		fmt.Println("Client disconnected, worker ID:", workerID)
-
-		// Listen to connection close and un-register worker
-		// for {
-		// 	select {
-		// 	case <-c.Done():
-		// 		orch.StopWorker(workerID)
-		// 		return
-		// 	default:
-		// 		time.Sleep(50 * time.Millisecond)
-		// 	}
-		// }
 	})
 }

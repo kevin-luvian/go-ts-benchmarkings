@@ -1,56 +1,30 @@
-const path = require("path");
-const { ingestXlsxFile } = require("../../internal/ingester/xlsx");
-const {
-  getTestDir,
-  readConfigJson,
-} = require("../../internal/settings/lazy_config");
-const {
-  XlsxReaderOptions,
-  ReportConfig,
-} = require("../../internal/ingester/type");
-const { init, Server } = require("../../internal/settings");
-const { connectSequelize } = require("../../internal/db");
+const redis = require("../../internal/redis");
+const { init, Redis } = require("../../internal/settings/settings");
 
 const main = async () => {
   init();
+  await redis.setup({
+    host: Redis.host,
+    port: Redis.port,
+    queueName: Redis.queueName,
+    password: Redis.password,
+  });
 
-  const targetFile = path.join(getTestDir(), "test_57_mb.xlsx");
-  console.info("Server ID:", Server.id, "Target file:", targetFile);
+  let res = await redis.set("test", "test", 100);
+  // res = await redis.rpushStruct("test-p", { id: "test", ts: Date.now() });
+  // res = await redis.rpush("test-p", "testf");
+  console.log({ res });
 
-  const db = await connectSequelize();
-
-  const configObj = readConfigJson();
-  const config = new ReportConfig();
-  config.read(configObj);
-
-  try {
-    await ingestXlsxFile(
-      targetFile,
-      new XlsxReaderOptions({
-        requestID: "plaground-test",
-        tableName: config.tableName,
-        sheetName: config.sheet,
-        startRow: config.startRow,
-        columns: config.columns,
-        db: db,
-        callback: (total) => {},
-      })
-    );
-  } catch (error) {
-    console.error(error);
-  }
-
-  console.log(" === Done === ");
-
-  while (true) {}
+  res = await redis.get("test");
+  console.log({ res });
 };
 
 (async () => {
   try {
     await main();
-    process.exit();
   } catch (error) {
     console.error(error);
-    process.exit(1);
+  } finally {
+    process.exit();
   }
 })();

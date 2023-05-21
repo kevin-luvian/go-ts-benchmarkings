@@ -26,7 +26,6 @@ type WriterOpts struct {
 	Concurrency int
 	TableName   string
 	Transaction *sqlx.Tx
-	Sigterm     chan struct{}
 }
 
 type ReportConfig struct {
@@ -59,5 +58,5 @@ type ReadXlsxOpts struct {
 	SheetName      string
 	StartRow       int
 	ColumnMappings []ColumnMapping
-	Callback       func(total int64)
+	Callback       func(total int64) bool
 }

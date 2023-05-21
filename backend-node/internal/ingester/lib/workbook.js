@@ -16,7 +16,7 @@ const Util = require("util");
 
 Tmp.setGracefulCleanup();
 
-const XlsxStreamReaderWorkSheet = require(Path.join(__dirname, "worksheet"));
+const XlsxStreamReaderWorkSheet = require("./worksheet");
 
 module.exports = XlsxStreamReaderWorkBook;
 
@@ -204,6 +204,11 @@ XlsxStreamReaderWorkBook.prototype._handleWorkBookStream = function () {
           var currentBook = 0;
           var processBooks = function () {
             var sheetInfo = self.waitingWorkSheets[currentBook];
+            // === signed-kev: added this
+            if (!sheetInfo) {
+              return;
+            }
+            // === end-sign
             var workSheetStream = Fs.createReadStream(sheetInfo.path);
             var name = self._getSheetName(sheetInfo.sheetPath);
             var workSheet = new XlsxStreamReaderWorkSheet(

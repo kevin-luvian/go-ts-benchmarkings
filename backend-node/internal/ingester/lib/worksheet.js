@@ -157,6 +157,7 @@ XlsxStreamReaderWorkSheet.prototype.abort = function () {
   if (self.workSheetStream instanceof Stream) {
     self.workSheetStream.destroy();
   }
+  setImmediate(self.emit.bind(self), "end");
   // === end-sign
 };
 

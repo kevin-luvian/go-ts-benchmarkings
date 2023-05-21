@@ -22,11 +22,12 @@ class UseCase {
   }
 
   /**
-   *
    * @param {string} filePath
+   * @param {string} id
+   * @param {number} limit
    * @returns
    */
-  async ingestFile(filePath, id) {
+  async ingestFile(filePath, id, limit = -1) {
     console.log(`ingesting file ${filePath} with requestid ${id}`);
     const result = new IngestResult({
       id: id,
@@ -46,13 +47,23 @@ class UseCase {
           sheetName: this.config.sheet,
           startRow: this.config.startRow,
           callback: async (total) => {
-            // if (total % 2000 == 0) {
-            //   console.log("RequestID:", id, "Processing:", total);
-            // }
-
             result.total = total;
             result.ts = Date.now();
             await redis.rpushStruct(Redis.queueName, result);
+
+            // panic triggered!!
+            const panicStr = await redis.get("owo-node-panic");
+            if (panicStr) {
+              console.log("panic triggered, ending ingestion for request", id);
+              return true;
+            }
+
+            if (limit > 0 && total >= limit) {
+              console.log("limit reached, ending ingestion for request", id);
+              return true;
+            }
+
+            return false;
           },
         })
       );

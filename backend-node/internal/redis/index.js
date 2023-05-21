@@ -17,8 +17,10 @@ const setup = async ({ host, port, username, password }) => {
 /**
  * @param {string} key
  * @param {string} value
+ * @param {number} timeoutMS
  */
-const set = async (key, value) => client.set(key, value);
+const set = async (key, value, timeoutMS = 6000) =>
+  client.sendCommand(["SET", key, value, "PX", `${timeoutMS}`]);
 
 /**
  * @param {string} key

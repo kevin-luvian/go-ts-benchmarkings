@@ -6,6 +6,7 @@ import (
 
 var singleLock = &sync.Mutex{}
 var workersLock = &sync.Mutex{}
+var workersMetricsLock = &sync.Mutex{}
 
 var singleInstance *Orchestrator
 

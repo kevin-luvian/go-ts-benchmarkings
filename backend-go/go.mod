@@ -33,6 +33,7 @@ require (
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pbnjay/grate v0.0.0-20220809231734-6f2eabdf189c
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/thedatashed/xlsxreader v1.2.5
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect

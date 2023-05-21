@@ -11,7 +11,7 @@ const { getConn } = require("../db");
 const EventEmitter = require("events");
 const QueryTypes = require("sequelize").QueryTypes;
 
-const STREAM_BATCH_SIZE = 500;
+const STREAM_BATCH_SIZE = 1000;
 
 /**
  * @typedef {import("./type").XlsxReaderOptions} XlsxReaderOptions
@@ -44,10 +44,12 @@ const ingestXlsxFile = async (filePath, opts) => {
       makeDBWriter({
         tableName: opts.tableName,
         transaction: transaction,
-        resultCallback: (processed) => {
+        resultCallback: async (processed) => {
           total += processed;
-          opts.callback(total);
-          return total;
+          const isDone = await opts.callback(total);
+          if (isDone) {
+            sigtermEmitter.emit("sigterm");
+          }
         },
       })
     );
@@ -119,8 +121,25 @@ const makeXLSXReader = ({
     );
   }
 
+  const readable = fs.createReadStream(filePath, {
+    highWaterMark: fileBufferSize,
+  });
+  // abort the file readable stream
+  sigtermEmitter.addListener("sigterm", () => {
+    readable.destroy();
+  });
+
   const workBookReaderStream = new XlsxStreamReader();
-  workBookReaderStream.setMaxListeners(10);
+  workBookReaderStream.setMaxListeners(11);
+
+  let workSheetsRefs = [];
+
+  // abort the sheet reader stream
+  sigtermEmitter.addListener("sigterm", () => {
+    for (let i = 0; i < workSheetsRefs.length; i++) {
+      workSheetsRefs[i].abort();
+    }
+  });
 
   workBookReaderStream.on("worksheet", (workSheetReader) => {
     let colLookup = [];
@@ -131,10 +150,7 @@ const makeXLSXReader = ({
       return;
     }
 
-    // abort the sheet reader stream
-    sigtermEmitter.addListener("sigterm", () => {
-      workSheetReader.abort();
-    });
+    workSheetsRefs.push(workSheetReader);
 
     let total = 0;
     workSheetReader.on("row", (row) => {
@@ -160,24 +176,11 @@ const makeXLSXReader = ({
         {}
       );
 
-      if (total % 100 == 0 && total >= 19700) {
-        console.log("still emitting data", total);
-      }
-
       workBookReaderStream.emit("data", jsonObject);
     });
 
     // call process after registering handlers
     workSheetReader.process();
-  });
-
-  const readable = fs.createReadStream(filePath, {
-    highWaterMark: fileBufferSize,
-  });
-
-  // abort the file readable stream
-  sigtermEmitter.addListener("sigterm", () => {
-    readable.destroy();
   });
 
   return asyncPipeline(readable, workBookReaderStream, (err) => {

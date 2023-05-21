@@ -1,4 +1,4 @@
-import { RequestsState } from "./Entities";
+import { RequestsState } from "./entities/RequestState";
 import EventEmitter from "events";
 
 class Orchestrator {
@@ -6,6 +6,7 @@ class Orchestrator {
     this.RequestsState = new RequestsState({});
     this.onFetch = async (arg0) => {};
     this.Emitter = new EventEmitter();
+    this.isPanicked = false;
   }
 
   /**
@@ -15,8 +16,10 @@ class Orchestrator {
   init(RequestsState, onFetch) {
     this.RequestsState = RequestsState;
     this.onFetch = onFetch;
-    this.Emitter = new EventEmitter();
-    return this.Emitter;
+  }
+
+  flagPanic() {
+    this.isPanicked = true;
   }
 
   getEmitter() {
@@ -29,7 +32,6 @@ class Orchestrator {
       const historyLen = this.RequestsState.HistoryRequests.length;
       const totalLen = this.RequestsState.RunningRequests.length + historyLen;
       if (historyLen >= this.RequestsState.numOfRequests) {
-        this.Emitter.emit("updoods");
         return;
       }
 
@@ -38,9 +40,7 @@ class Orchestrator {
       }
 
       reqID = this.RequestsState.addRequest(reqID);
-      console.log("Doing fetch with request id: ", reqID);
       await this.onFetch(reqID);
-      this.Emitter.emit("updoods");
     } catch (error) {
       console.error(error);
       if (!reqID) {
@@ -62,34 +62,31 @@ class Orchestrator {
       return;
     }
 
-    const [isAbleToFetch, wasChanged] = this.RequestsState.ingestRequest(obj);
-    if (isAbleToFetch) {
+    const [isAbleToFetch, wasChanged, doneRequest] =
+      this.RequestsState.ingestRequest(obj);
+    if (isAbleToFetch && !this.isPanicked) {
       this.doFetch();
     }
 
+    if (doneRequest) {
+      this.Emitter.emit("request_done", doneRequest);
+    }
+
     if (wasChanged) {
-      this.Emitter.emit("updoods");
+      if (this.RequestsState.isDone()) {
+        this.Emitter.emit("benchmark_done", true);
+      }
     }
   }
 
   async start() {
-    console.log("Starting Orchestrator", this.RequestsState.concurrency);
     for (let i = 0; i < this.RequestsState.concurrency; i++) {
       this.doFetch();
       await sleep(500);
     }
-
-    // this.ticker = setInterval(() => {
-    //   const ts = Date.now();
-    //   const invalidatedCount = this.RequestsState.invalidateTimeouts(ts);
-    //   for (let i = 0; i < invalidatedCount; i++) {
-    //     this.doFetch();
-    //   }
-    // }, 30000);
   }
 
   stop() {
-    // clearInterval(this.ticker);
     this.RequestsState.clearRunningRequests();
   }
 }

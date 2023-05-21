@@ -37,10 +37,8 @@ func main() {
 
 	// start SSE orchestrators
 	orch := orchestrator.Get()
-	orch.StartTicker(func() string {
-		str, _ := redis.LPop()
-		return str
-	})
+	orch.StartTicker()
+	orch.StartTickerMetrics()
 
 	uc := usecase.New(usecase.Dependencies{})
 

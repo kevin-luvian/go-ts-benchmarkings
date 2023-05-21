@@ -18,28 +18,49 @@ const Inputs = ({ data, onStateChange }) => {
   return (
     <Form labelCol={{ span: 8, lg: 4 }} wrapperCol={{ span: 16, lg: 20 }}>
       <Form.Item label="Target URL">
-        <CustomDropdown
-          defaultItems={[
-            "http://localhost:9001/ingest-57",
-            "http://localhost:9002/ingest-57",
-          ]}
-          value={data.url}
-          setValue={(val) => onChange({ url: val })}
-        />
+        <Row>
+          <Col span={16} md={19}>
+            <CustomDropdown
+              defaultItems={[
+                "http://localhost:9001/ingest-57",
+                "http://localhost:9002/ingest-57",
+              ]}
+              value={data.url}
+              setValue={(val) => onChange({ url: val })}
+            />
+          </Col>
+          <Col span={8} md={4} offset={1}>
+            <InputNumber
+              prefix="limit:"
+              min={0}
+              max={500000}
+              step={1000}
+              style={{ width: "100%" }}
+              value={data.limit}
+              onChange={(val) => onChange({ limit: val })}
+            />
+          </Col>
+        </Row>
       </Form.Item>
       <Form.Item label="Target SSE URL">
-        <CustomDropdown
-          defaultItems={["http://localhost:9003/sse"]}
-          value={data.sseurl}
-          setValue={(val) => onChange({ sseurl: val })}
-        />
+        <Row>
+          <Col span={24}>
+            <CustomDropdown
+              defaultItems={["http://localhost:9003/sse"]}
+              value={data.sseurl}
+              setValue={(val) => onChange({ sseurl: val })}
+            />
+          </Col>
+        </Row>
       </Form.Item>
       <Form.Item label="Target File">
-        <Input disabled placeholder="input placeholder" />
+        <Row>
+          <Input disabled placeholder="input placeholder" />
+        </Row>
       </Form.Item>
       <Form.Item label="Total Requests:">
         <Row>
-          <Col span={16} md={20}>
+          <Col span={16} md={19}>
             <Slider
               min={1}
               max={50}
@@ -47,11 +68,11 @@ const Inputs = ({ data, onStateChange }) => {
               onChange={(val) => onChange({ numOfRequests: val })}
             />
           </Col>
-          <Col span={8} md={4}>
+          <Col span={8} md={4} offset={1}>
             <InputNumber
               min={1}
               max={500}
-              style={{ margin: "0 16px" }}
+              style={{ width: "100%" }}
               value={data.numOfRequests}
               onChange={(val) => onChange({ numOfRequests: val })}
             />
@@ -60,7 +81,7 @@ const Inputs = ({ data, onStateChange }) => {
       </Form.Item>
       <Form.Item label="Concurrent Requests:">
         <Row>
-          <Col span={16} md={20}>
+          <Col span={16} md={19}>
             <Slider
               min={1}
               max={10}
@@ -68,11 +89,11 @@ const Inputs = ({ data, onStateChange }) => {
               value={data.concurrency}
             />
           </Col>
-          <Col span={8} md={4}>
+          <Col span={8} md={4} offset={1}>
             <InputNumber
               min={1}
               max={100}
-              style={{ margin: "0 16px" }}
+              style={{ width: "100%" }}
               value={data.concurrency}
               onChange={(val) => onChange({ concurrency: val })}
             />

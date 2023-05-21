@@ -1,47 +1,19 @@
-import { Fragment } from "react";
-import { Divider, List, Row, Col, Progress, Statistic } from "antd";
-import { RequestObject } from "./internal/Entities";
-
-// const makeRequests = (num, status) => {
-//   const arr = [];
-//   for (let i = 0; i < num; i++) {
-//     const obj = new RequestObject({
-//       ID: `reqid-${i}`,
-//       Status: status,
-//     });
-//     obj.TS = [100000, 100500, 101000, 101500];
-//     obj.Total = [1000, 2000, 3000, 4000];
-//     arr.push(obj);
-//   }
-//   return arr;
-// };
-
-// const running = makeRequests(5, "running");
-// const histories = makeRequests(10, "done");
-
-/**
- * get differences between incremental array
- * @param {[number]} arrTS
- */
-const calcDiff = (arr) => {
-  if (arr.length <= 1) {
-    return [0];
-  }
-
-  const diff = [];
-  for (let i = 0; i < arr.length - 1; i++) {
-    diff.push(arr[i + 1] - arr[i]);
-  }
-
-  return diff;
-};
-
-const calcAverage = (arr) => {
-  if (arr.length === 0) {
-    return 0;
-  }
-  return Math.floor(arr.reduce((a, b) => a + b, 0) / arr.length);
-};
+import { Fragment, useState } from "react";
+import {
+  Divider,
+  List,
+  Row,
+  Col,
+  Progress,
+  Statistic,
+  Tabs,
+  Descriptions,
+} from "antd";
+import { RequestStatus } from "./internal/entities/Consts";
+import { RequestObject } from "./internal/entities/Request";
+import { SummaryObject } from "./internal/entities/Summary";
+import useSummaries from "./hooks/useSummaries";
+import ChartUsage from "./ChartUsage";
 
 /**
  * @param {Object} param0
@@ -49,6 +21,8 @@ const calcAverage = (arr) => {
  * @param {RequestObject[]} param0.histories
  */
 const Dashboard = ({ running, histories }) => {
+  const [activeTab, setActiveTab] = useState("current_histories");
+
   return (
     <Fragment>
       <Divider orientation="left" />
@@ -100,67 +74,158 @@ const Dashboard = ({ running, histories }) => {
       <Divider orientation="left" />
       <Divider orientation="left" />
 
+      <Tabs
+        onChange={setActiveTab}
+        activeKey={activeTab}
+        items={[
+          {
+            label: `Current History`,
+            key: "current_histories",
+            children: <HistoriesTable histories={histories} />,
+          },
+          {
+            label: `Summary`,
+            key: "summary",
+            children: <Summaries />,
+          },
+        ]}
+      />
+    </Fragment>
+  );
+};
+
+/**
+ *
+ * @param {Object} param0
+ * @param {RequestObject[]} param0.histories
+ */
+const HistoriesTable = ({ histories }) => (
+  <List
+    size="default"
+    header={
+      <div>
+        {"[¬º-°]¬  "} <b>Histories Requests</b>
+      </div>
+    }
+    footer={<div>=== :OwO: ===</div>}
+    bordered
+    dataSource={histories}
+    renderItem={(item) => {
+      const avgLatency = item.getAvg();
+      const firstTs = item.getFirstTs();
+      const lastTs = item.getLastTS();
+      const total = item.getTotal();
+      const timeTookSeconds = item.getTimeTookSeconds();
+      const wps = item.getWritesPerSeconds();
+
+      return (
+        <List.Item>
+          <Row style={{ width: "100%" }}>
+            <Col span={6}>
+              <Statistic title="ID" value={item.ID} />
+            </Col>
+            <Col span={6}>
+              <Statistic title="Average Latency" value={avgLatency + "ms"} />
+            </Col>
+            <Col span={6}>
+              <Statistic title="Writes Per Seconds" value={`${wps}/s`} />
+            </Col>
+            <Col span={6}>
+              <Statistic title="Total Processed" value={total} />
+            </Col>
+            <Col span={6} />
+            <Col span={6}>
+              <Statistic title="Started At" value={formatDate(firstTs)} />
+            </Col>
+            <Col span={6}>
+              <Statistic title="Finished At" value={formatDate(lastTs)} />
+            </Col>
+            <Col span={6}>
+              <Statistic title="Time" value={timeTookSeconds + "s"} />
+            </Col>
+            <Col span={24}>
+              <Statistic
+                style={{ color: "red!important" }}
+                title={
+                  item.Status === RequestStatus.Error ? "Error Message" : "Done"
+                }
+                value={item.Status + ":" + item.Message}
+              />
+            </Col>
+          </Row>
+        </List.Item>
+      );
+    }}
+  />
+);
+
+/**
+ * @param {Object} param0
+ * @param {SummaryObject[]} param0.summaries
+ */
+const Summaries = () => {
+  const [summaries] = useSummaries();
+
+  return (
+    <Fragment>
       <List
         size="default"
         header={
           <div>
-            {"[¬º-°]¬  "} <b>Histories Requests</b>
+            {"(づ｡◕‿‿◕｡)づ  "} <b>Summaries</b>
           </div>
         }
         footer={<div>=== :OwO: ===</div>}
         bordered
-        dataSource={histories}
-        renderItem={(item) => {
-          const avgLatency = item.getAvg();
-          const firstTs = item.getFirstTS();
-          const lastTs = item.getLastTS();
-          const total = item.getTotal();
-
-          const timeTookSeconds = Math.floor(
-            (this.lastTs - this.firstTs) / 1000
-          );
-          const wps = total / timeTookSeconds;
-
-          return (
-            <List.Item>
-              <Row style={{ width: "100%" }}>
-                <Col span={6}>
-                  <Statistic title="ID" value={item.ID} />
-                </Col>
-                <Col span={6}>
-                  <Statistic
-                    title="Average Latency"
-                    value={avgLatency + "ms"}
-                  />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="Writes Per Seconds" value={`${wps}/s`} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="Total Processed" value={total} />
-                </Col>
-                <Col span={6} />
-                <Col span={6}>
-                  <Statistic title="Started At" value={formatDate(firstTs)} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="Finished At" value={formatDate(lastTs)} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="Time" value={timeTookSeconds} />
-                </Col>
-                <Col span={24}>
-                  <Statistic
-                    style={{ color: "red!important" }}
-                    title="Error Message"
-                    value={item.Message}
-                  />
-                </Col>
-                {/* <Col span={24}>{JSON.stringify(item)}</Col> */}
-              </Row>
-            </List.Item>
-          );
-        }}
+        dataSource={summaries}
+        renderItem={(summary) => (
+          <List.Item>
+            <Row style={{ width: "100%" }}>
+              <Col span={24}>
+                <Descriptions title={summary.url}>
+                  <Descriptions.Item label="Total Requests">
+                    {summary.totalRequests}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Concurrent Requests">
+                    {summary.targetConcurrency}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Limit">
+                    {summary.targetLimit}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="First Timestamp">
+                    {formatDate(summary.firstTs)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Last Timestamp">
+                    {formatDate(summary.lastTs)}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="Average Writes Per Seconds"
+                  value={summary.getAvgWPS() + "/s"}
+                />
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="Average Duration"
+                  value={summary.getAvgTimeTook() + "s"}
+                />
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="Total Duration"
+                  value={
+                    Math.floor((summary.lastTs - summary.firstTs) / 1000) + "s"
+                  }
+                />
+              </Col>
+              <Col span={24}>
+                <ChartUsage metrics={summary.metrics} />
+              </Col>
+            </Row>
+          </List.Item>
+        )}
       />
     </Fragment>
   );
