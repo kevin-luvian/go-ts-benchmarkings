@@ -33,7 +33,7 @@ const useOrchestrator = () => {
       numOfRequests,
       concurrency,
       prefix,
-      requestTimeout: 10 * 1000,
+      requestTimeout: 3 * 60 * 1000,
     });
     const onFetch = async (requestID) => {
       await fetch(`${url}?id=${requestID}&limit=${limit}`, {
