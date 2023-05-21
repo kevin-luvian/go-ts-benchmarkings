@@ -19,11 +19,19 @@ func (o *Orchestrator) StartTicker() {
 		for {
 			select {
 			case <-ticker.C:
+				if !o.DoesWorkersExist() {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
 				if len(batch) > 0 {
 					o.SendWorkerMessages(batch)
 					batch = make([]string, 0)
 				}
 			default:
+				if !o.DoesWorkersExist() {
+					time.Sleep(500 * time.Millisecond)
+					continue
+				}
 				msg, _ := redis.LPop()
 				if msg != "" {
 					// o.SendWorkerMessages(msgs)
