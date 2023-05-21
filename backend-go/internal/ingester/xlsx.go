@@ -44,6 +44,7 @@ func ReadXlsx(filePath string, opts ReadXlsxOpts) (int64, error) {
 		Concurrency: CONCURRENT_WRITERS,
 		TableName:   opts.TableName,
 		Transaction: tx,
+		Sigterm:     sigterm,
 	})
 
 	total := int64(0)
@@ -205,7 +206,11 @@ func concurrentWriter(in <-chan []map[string]any, opts WriterOpts) <-chan Writer
 					LastRowId:    lastRowId,
 					Error:        err,
 				}
-				out <- response
+				select {
+				case out <- response:
+				case <-opts.Sigterm:
+					return
+				}
 			}
 		}()
 	}

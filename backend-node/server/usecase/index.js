@@ -51,15 +51,15 @@ class UseCase {
             result.ts = Date.now();
             await redis.rpushStruct(Redis.queueName, result);
 
+            if (limit > 0 && total >= limit) {
+              console.log("limit reached, ending ingestion for request", id);
+              return true;
+            }
+
             // panic triggered!!
             const panicStr = await redis.get("owo-node-panic");
             if (panicStr) {
               console.log("panic triggered, ending ingestion for request", id);
-              return true;
-            }
-
-            if (limit > 0 && total >= limit) {
-              console.log("limit reached, ending ingestion for request", id);
               return true;
             }
 

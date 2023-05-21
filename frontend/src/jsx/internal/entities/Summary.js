@@ -2,6 +2,10 @@ import { averageDownsample } from "../math/downsapling";
 import { RequestStatus } from "./Consts";
 import { MetricTick } from "./Metrics";
 
+/**
+ * @typedef {import("./Request").RequestObject} RequestObject
+ */
+
 export class SummaryObject {
   done = false;
   totalRequests = 0;

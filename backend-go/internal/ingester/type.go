@@ -26,6 +26,7 @@ type WriterOpts struct {
 	Concurrency int
 	TableName   string
 	Transaction *sqlx.Tx
+	Sigterm     chan struct{}
 }
 
 type ReportConfig struct {

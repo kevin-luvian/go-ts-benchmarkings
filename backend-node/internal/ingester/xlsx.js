@@ -49,6 +49,7 @@ const ingestXlsxFile = async (filePath, opts) => {
           if (isDone) {
             sigtermEmitter.emit("sigterm");
           }
+          return isDone;
         },
       })
     );
@@ -66,7 +67,7 @@ const ingestXlsxFile = async (filePath, opts) => {
  * @param {Object} param0
  * @param {string} param0.tableName
  * @param {Transaction} param0.transaction
- * @param {function(number):void} param0.resultCallback
+ * @param {function(number):Promise<boolean>} param0.resultCallback
  * @return {Writable}
  */
 const makeDBWriter = ({ tableName, transaction, resultCallback }) => {
@@ -74,6 +75,11 @@ const makeDBWriter = ({ tableName, transaction, resultCallback }) => {
     objectMode: true,
     async write(chunk, _ec, cb) {
       try {
+        const isDone = await resultCallback(chunk.length);
+        if (isDone) {
+          return cb();
+        }
+
         const columns = Object.keys(chunk[0]);
         const values = new Array(chunk.length);
         for (let i = 0; i < chunk.length; i++) {
@@ -87,10 +93,6 @@ const makeDBWriter = ({ tableName, transaction, resultCallback }) => {
             type: QueryTypes.INSERT,
           }
         );
-        resultCallback(chunk.length);
-        // if (total >= 100_000) {
-        //   return cb(new Error("test"));
-        // }
         cb();
       } catch (error) {
         cb(error);
