@@ -14,7 +14,7 @@ func ReadXlsx(filePath string, opts ReadXlsxOpts) (int64, error) {
 		CONCURRENT_TRANSFORMERS = 4
 		CONCURRENT_WRITERS      = 8
 		CONCURRENT_BATCHERS     = 2
-		CONCURRENT_BATCH_SIZE   = 1000
+		CONCURRENT_BATCH_SIZE   = 500
 	)
 	fmt.Println("starting to ingest file with request id", opts.RequestID)
 

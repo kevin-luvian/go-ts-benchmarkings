@@ -11,7 +11,7 @@ const { getConn } = require("../db");
 const EventEmitter = require("events");
 const QueryTypes = require("sequelize").QueryTypes;
 
-const STREAM_BATCH_SIZE = 1000;
+const STREAM_BATCH_SIZE = 500;
 
 /**
  * @typedef {import("./type").XlsxReaderOptions} XlsxReaderOptions
