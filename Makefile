@@ -22,3 +22,8 @@ compose-down:
 	@docker-compose down
 	@make setup
 	@echo "=== DONE ==="
+
+clean-swap:
+	@echo "${NOW} === CLEANING SWAP MEMORY ==="
+	@echo 3 > /proc/sys/vm/drop_caches && swapoff -a && swapon -a && printf '\n%s\n' 'Ram-cache and Swap Cleared'
+	@echo "=== DONE ==="
