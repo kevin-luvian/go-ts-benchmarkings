@@ -200,16 +200,17 @@ func concurrentWriter(in <-chan []map[string]any, opts WriterOpts) <-chan Writer
 			defer wg.Done()
 
 			for batch := range in {
-				lastRowId, err := db.BulkInsertMap(opts.TableName, batch, opts.Transaction)
-				response := WriterResponse{
-					RowsAffected: int64(len(batch)),
-					LastRowId:    lastRowId,
-					Error:        err,
-				}
 				select {
-				case out <- response:
 				case <-opts.Sigterm:
 					return
+				default:
+					lastRowId, err := db.BulkInsertMap(opts.TableName, batch, opts.Transaction)
+					response := WriterResponse{
+						RowsAffected: int64(len(batch)),
+						LastRowId:    lastRowId,
+						Error:        err,
+					}
+					out <- response
 				}
 			}
 		}()

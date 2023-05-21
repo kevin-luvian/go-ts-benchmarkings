@@ -47,14 +47,14 @@ class UseCase {
           sheetName: this.config.sheet,
           startRow: this.config.startRow,
           callback: async (total) => {
-            result.total = total;
-            result.ts = Date.now();
-            await redis.rpushStruct(Redis.queueName, result);
-
-            if (limit > 0 && total >= limit) {
+            if (limit > 0 && total > limit) {
               console.log("limit reached, ending ingestion for request", id);
               return true;
             }
+
+            result.total = total;
+            result.ts = Date.now();
+            await redis.rpushStruct(Redis.queueName, result);
 
             // panic triggered!!
             const panicStr = await redis.get("owo-node-panic");
