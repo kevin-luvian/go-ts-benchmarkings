@@ -83,8 +83,8 @@ func (o *Orchestrator) CreateWorker(msgsChan chan<- []string, mtrChan chan<- str
 		OnReceiveMetric: func(s string) {
 			mtrChan <- s
 		},
-		source:       make(chan []string, 100),
-		metricSource: make(chan string, 100),
+		source:       make(chan []string, 10_000),
+		metricSource: make(chan string, 10_000),
 		stop:         make(chan struct{}),
 		finish:       make(chan struct{}),
 	}

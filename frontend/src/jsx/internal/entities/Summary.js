@@ -60,21 +60,18 @@ export class SummaryObject {
       return;
     }
 
-    let newMetrics = new Array(this.metrics.length);
-    let counter = 0;
+    let newMetrics = [];
     for (let i = 0; i < this.metrics.length; i++) {
       const m = this.metrics[i];
       if (m.ts < this.firstTs || m.ts > this.lastTs) {
         continue;
       }
 
-      newMetrics[counter++] = m;
+      newMetrics.push(m);
     }
 
-    this.metrics = averageDownsample(
-      newMetrics.slice(0, counter),
-      30,
-      MetricTick.getAverage
+    this.metrics = averageDownsample(newMetrics, 30, (m) =>
+      MetricTick.getAverage(m)
     );
   }
 

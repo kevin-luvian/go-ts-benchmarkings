@@ -9,7 +9,7 @@
 export const averageDownsample = (data, len, getAverage) => {
   const originalLength = data.length;
   const interpolationStep = Math.floor(originalLength / len);
-  const avgData = new Array(len);
+  const avgData = [];
 
   if (originalLength <= len) {
     return data;
@@ -23,7 +23,14 @@ export const averageDownsample = (data, len, getAverage) => {
       lastI = originalLength - 1;
     }
 
-    avgData[i] = getAverage(data.slice(firstI, lastI));
+    try {
+      const avg = getAverage(data.slice(firstI, lastI));
+      avgData.push(avg);
+    } catch (_err) {}
+  }
+
+  if (avgData.length === 0) {
+    return data;
   }
 
   return avgData;

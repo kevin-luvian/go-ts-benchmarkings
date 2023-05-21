@@ -45,8 +45,8 @@ func (h *Handler) HandlerSSEPooling(r gin.IRoutes) gin.IRoutes {
 		c.Writer.Header().Set("Connection", "keep-alive")
 		c.Writer.Header().Set("Transfer-Encoding", "chunked")
 
-		clientChan := make(chan []string, 5)
-		metricsChan := make(chan string, 5)
+		clientChan := make(chan []string, 100)
+		metricsChan := make(chan string, 100)
 
 		orch := orchestrator.Get()
 		workerID := orch.CreateWorker(clientChan, metricsChan)

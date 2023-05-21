@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export class MetricTick {
   cpu_usage = 0;
   memory_usage = 0;
@@ -20,21 +22,28 @@ export class MetricTick {
    * @param {MetricTick[]} ticks
    */
   static getAverage(ticks) {
+    if (ticks.length === 0) {
+      throw new Error("Cannot get average of empty array");
+    }
+
     const result = new MetricTick({});
     for (const tick of ticks) {
       result.cpu_usage += tick.cpu_usage ?? 0;
       result.memory_usage += tick.memory_usage ?? 0;
       result.ts += tick.ts ?? 0;
     }
-    return new MetricTick({
+
+    const rresult = new MetricTick({
       cpu_usage: Math.floor(result.cpu_usage / ticks.length),
       memory_usage: Math.floor(result.memory_usage / ticks.length),
       ts: Math.floor(result.ts / ticks.length),
     });
+    // console.log("Trying to downsample", ticks.length, ticks, result, rresult);
+    return rresult;
   }
 
   isValid() {
-    return this.ts > 1000;
+    return !_.isNaN(this.ts) && this.ts > 1000;
   }
 }
 
