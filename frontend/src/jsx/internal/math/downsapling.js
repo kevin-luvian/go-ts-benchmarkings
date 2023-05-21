@@ -19,8 +19,8 @@ export const averageDownsample = (data, len, getAverage) => {
     const firstI = i * interpolationStep;
     let lastI = (i + 1) * interpolationStep - 1;
 
-    if (lastI > originalLength) {
-      lastI = originalLength;
+    if (lastI >= originalLength) {
+      lastI = originalLength - 1;
     }
 
     avgData[i] = getAverage(data.slice(firstI, lastI));

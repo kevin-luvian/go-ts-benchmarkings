@@ -20,7 +20,7 @@ export class RequestsState {
 
   constructor({ numOfRequests, concurrency, prefix, requestTimeout }) {
     this.internalCounter = 0;
-    this.requestTimeout = requestTimeout ?? 10000;
+    this.requestTimeout = requestTimeout ?? 90000;
     this.numOfRequests = numOfRequests ?? 0;
     this.concurrency = concurrency ?? 0;
     this.requestIDPrefix = prefix ?? "request-";
@@ -28,6 +28,21 @@ export class RequestsState {
 
   isDone() {
     return this.HistoryRequests.length >= this.numOfRequests;
+  }
+
+  invalidateTimeouts() {
+    const now = Date.now();
+    for (let i = 0; i < this.RunningRequests.length; i++) {
+      const request = this.RunningRequests[i];
+      if (request.lastTs < 1000) {
+        continue;
+      }
+
+      if (now - request.lastTs > this.requestTimeout) {
+        request.Message = "Request timed out";
+        this.completeRequest(request.ID, "Request timed out");
+      }
+    }
   }
 
   clearRunningRequests() {
@@ -46,13 +61,13 @@ export class RequestsState {
    */
   addRequest() {
     const runningCount = this.RunningRequests.length;
-    if (runningCount >= this.concurrency) {
+    if (runningCount > this.concurrency) {
       throw new Error(
         `Too many requests running: ${runningCount} expected: ${this.concurrency}`
       );
     }
 
-    if (this.HistoryRequests.length >= this.numOfRequests) {
+    if (this.HistoryRequests.length > this.numOfRequests) {
       throw new Error(
         `Too many requests made: ${this.HistoryRequests.length} expected: ${this.numOfRequests}`
       );

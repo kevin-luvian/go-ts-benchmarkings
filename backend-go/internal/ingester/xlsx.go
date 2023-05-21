@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/thedatashed/xlsxreader"
 )
@@ -14,16 +13,10 @@ func ReadXlsx(filePath string, opts ReadXlsxOpts) (int64, error) {
 	var (
 		CONCURRENT_TRANSFORMERS = 4
 		CONCURRENT_WRITERS      = 8
-		CONCURRENT_BATCHERS     = 1
+		CONCURRENT_BATCHERS     = 2
 		CONCURRENT_BATCH_SIZE   = 1000
 	)
 	fmt.Println("starting to ingest file with request id", opts.RequestID)
-
-	start := time.Now()
-	defer func() {
-		end := time.Now().Sub(start).Seconds()
-		fmt.Println("Time taken: ", end, "s")
-	}()
 
 	// signal termination in case of error detected
 	sigterm := make(chan struct{})
@@ -77,7 +70,7 @@ func ReadXlsx(filePath string, opts ReadXlsxOpts) (int64, error) {
 			break
 		}
 
-		if total%1000 == 0 {
+		if total%5000 == 0 {
 			fmt.Println("Processed", total, "rows")
 		}
 	}
@@ -142,12 +135,6 @@ func concurrentTransform(in <-chan []string, opts TransformOpts) <-chan map[stri
 
 		ChanLoop:
 			for row := range in {
-				if len(out) > 0 {
-					fmt.Println("Transform", len(out), "buffered")
-				}
-				if len(in) > 0 {
-					fmt.Println("Reads", len(out), "buffered")
-				}
 				objMap := make(map[string]any)
 
 				for _, mapping := range opts.ColumnMappings {
@@ -180,9 +167,6 @@ func concurrentBatch[T any](input <-chan T, opts BatchingOpts) <-chan []T {
 
 			batch := make([]T, 0, opts.BatchSize)
 			for item := range input {
-				if len(out) > 0 {
-					fmt.Println("Batching", len(out), "buffered")
-				}
 				batch = append(batch, item)
 
 				if len(batch) == opts.BatchSize {
@@ -215,10 +199,6 @@ func concurrentWriter(in <-chan []map[string]any, opts WriterOpts) <-chan Writer
 			defer wg.Done()
 
 			for batch := range in {
-				if len(out) > 0 {
-					fmt.Println("Writes", len(out), "buffered")
-				}
-
 				lastRowId, err := db.BulkInsertMap(opts.TableName, batch, opts.Transaction)
 				response := WriterResponse{
 					RowsAffected: int64(len(batch)),

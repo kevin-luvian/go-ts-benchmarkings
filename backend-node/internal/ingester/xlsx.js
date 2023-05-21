@@ -24,7 +24,6 @@ const STREAM_BATCH_SIZE = 1000;
  * @param {XlsxReaderOptions} opts
  */
 const ingestXlsxFile = async (filePath, opts) => {
-  console.log("ingesting file started by", opts.requestID);
   const sigtermEmitter = new EventEmitter();
   const transaction = await getConn().transaction();
   try {

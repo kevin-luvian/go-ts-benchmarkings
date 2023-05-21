@@ -56,7 +56,6 @@ const makeRouter = (useCase) => {
   router.post("/panic", async (req, res) => {
     try {
       const panicCode = req.body["panic-code"];
-      console.log("req body", req.body);
       if (panicCode != "owo-benchmarker-panic") {
         throw new Error("invalid panic code");
       }

@@ -26,11 +26,21 @@ class Orchestrator {
     return this.Emitter;
   }
 
+  invalidateTimeouts() {
+    this.RequestsState.invalidateTimeouts();
+  }
+
   async doFetch() {
     let reqID;
     try {
+      const runningLen = this.RequestsState.RunningRequests.length;
       const historyLen = this.RequestsState.HistoryRequests.length;
       const totalLen = this.RequestsState.RunningRequests.length + historyLen;
+
+      if (runningLen >= this.RequestsState.concurrency) {
+        return;
+      }
+      
       if (historyLen >= this.RequestsState.numOfRequests) {
         return;
       }

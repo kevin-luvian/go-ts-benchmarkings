@@ -20,7 +20,7 @@ const App = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [inpConfig, setInpConfig] = useState({
     url: "",
-    sseurl: "http://localhost:9003/sse",
+    sseurl: "",
     numOfRequests: 1,
     concurrency: 1,
     limit: 5000,
@@ -71,7 +71,7 @@ const App = () => {
             level={4}
             style={{ color: "white", margin: 0, marginLeft: "1rem" }}
           >
-            OwO Benchmarker V0.7.0
+            OwO Benchmarker V0.7.2
           </Title>
         </Header>
         <Content style={{ padding: "2rem 3rem", height: "100%" }}>

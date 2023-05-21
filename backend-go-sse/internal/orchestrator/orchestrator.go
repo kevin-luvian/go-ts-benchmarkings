@@ -62,7 +62,6 @@ func (o *Orchestrator) StartTickerMetrics() {
 
 			metrics["ts"] = time.Now().UnixMilli()
 			metricJson, _ := json.Marshal(metrics)
-			fmt.Println("Sending metrics to client", string(metricJson))
 			o.SendWorkerMetricMessage(string(metricJson))
 			sink(t)
 		}

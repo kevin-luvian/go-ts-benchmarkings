@@ -1,8 +1,6 @@
 package ingester
 
 import (
-	"fmt"
-
 	"github.com/pbnjay/grate"
 	_ "github.com/pbnjay/grate/xlsx"
 )
@@ -25,13 +23,10 @@ func grateSheetReader(filePath string, opts ReadOpts) (<-chan []string, []string
 		defer func() {
 			close(out)
 			wb.Close()
-			// fmt.Println("Reads completed, channel closed")
 		}()
 
 		i := 0
-		fmt.Println("Starting to read")
 		for sheet.Next() {
-			fmt.Println("Reads", i, len(out), "buffered")
 			if i == opts.StartRow-1 {
 				headerChan <- sheet.Strings()
 			}

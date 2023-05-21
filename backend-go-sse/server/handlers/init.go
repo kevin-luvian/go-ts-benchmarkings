@@ -57,7 +57,6 @@ func (h *Handler) HandlerSSEPooling(r gin.IRoutes) gin.IRoutes {
 				select {
 				case msgs := <-clientChan:
 					for _, msg := range msgs {
-						fmt.Println("Sending message to client", msg)
 						c.SSEvent("data", msg)
 					}
 					return true

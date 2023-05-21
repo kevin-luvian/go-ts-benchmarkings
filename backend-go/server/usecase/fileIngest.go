@@ -37,7 +37,6 @@ func (uc *UseCase) IngestFaspayFile(filePath string, requestID string, limit int
 			}
 
 			if limit > 0 && total >= int64(limit) {
-				fmt.Println("Limit reached, ending ingestion for request", requestID)
 				return true
 			}
 

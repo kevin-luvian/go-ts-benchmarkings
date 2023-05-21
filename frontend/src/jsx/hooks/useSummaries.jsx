@@ -18,7 +18,7 @@ const useSummaries = () => {
 
   useInterval(() => {
     cloneSummaries();
-  }, 500);
+  }, 2000);
 
   useEffect(() => {
     cloneSummaries();

@@ -44,6 +44,10 @@ export class SummaryObject {
     if (metric.ts > latest.ts) {
       this.metrics.push(metric);
     }
+
+    if (this.metrics.length > 70) {
+      this._compactMetrics();
+    }
   }
 
   onBenchmarkDone() {
@@ -69,7 +73,7 @@ export class SummaryObject {
 
     this.metrics = averageDownsample(
       newMetrics.slice(0, counter),
-      20,
+      30,
       MetricTick.getAverage
     );
   }

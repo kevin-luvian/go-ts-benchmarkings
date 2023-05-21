@@ -33,7 +33,7 @@ const useOrchestrator = () => {
       numOfRequests,
       concurrency,
       prefix,
-      requestTimeout: 600 * 1000,
+      requestTimeout: 10 * 1000,
     });
     const onFetch = async (requestID) => {
       await fetch(`${url}?id=${requestID}&limit=${limit}`, {
@@ -99,6 +99,10 @@ const useOrchestrator = () => {
   const stopSSE = () => {
     SSEControllerSingleton.close();
   };
+
+  useInterval(() => {
+    OrchestratorSingleton.invalidateTimeouts();
+  }, 5000);
 
   useInterval(() => {
     updoodRRequests();

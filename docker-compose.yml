@@ -1,5 +1,16 @@
 version: '3'
 services:
+  owo-redis:
+    container_name: owo-redis
+    image: redis:6.2.6-alpine
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    volumes:
+      - ./redis.conf:/etc/redis/redis.conf
+      - oworedis:/data
+    restart: unless-stopped
+    ports:
+      - 9101:6379
+
   owo-mysql:
     container_name: owo-db
     image: mysql:8.0
@@ -12,18 +23,7 @@ services:
     volumes:
       - owomysql:/var/lib/mysql
     ports:
-      - 9100:3306
-
-  owo-redis:
-    container_name: owo-redis
-    image: redis:6.2.6-alpine
-    command: [ "redis-server", "/etc/redis/redis.conf" ]
-    volumes:
-      - ./redis.conf:/etc/redis/redis.conf
-      - oworedis:/data
-    restart: unless-stopped
-    ports:
-      - 9101:6379
+      - 9102:3306
 
   frontend:
     container_name: owo-frontend
@@ -56,7 +56,8 @@ services:
     container_name: owo-backend-go
     platform: linux/amd64
     build:
-      context: ./backend-go/dev
+      context: ./backend-go
+      # context: ./backend-go/dev
       dockerfile: Dockerfile
     ports:
       - 9001:8000
@@ -65,9 +66,9 @@ services:
       - ./docker.env:/app/.env
       - ./frontend/public:/frontend/public
       - ./tests:/tests
-      - gomod:/go/pkg/mod
-      - gocache:/root/.cache/go-build
-    command: [ "air", "-c", "./dev/.air.conf" ]
+      - owogomod:/go/pkg/mod
+      - owogocache:/root/.cache/go-build
+    # command: [ "air", "-c", "./dev/.air.conf" ]
     restart: unless-stopped
     depends_on:
       - owo-mysql
@@ -77,38 +78,25 @@ services:
     container_name: owo-backend-go-sse
     platform: linux/amd64
     build:
-      context: ./backend-go-sse/dev
+      context: ./backend-go-sse
+      # context: ./backend-go-sse/dev
       dockerfile: Dockerfile
     ports:
       - 9003:8000
     volumes:
       - ./backend-go-sse:/app
       - ./docker.env:/app/.env
-      - gomodSSE:/go/pkg/mod
-      - gocacheSSE:/root/.cache/go-build
-    command: [ "air", "-c", "./dev/.air.conf" ]
+      - owogomodSSE:/go/pkg/mod
+      - owogocacheSSE:/root/.cache/go-build
+    # command: [ "air", "-c", "./dev/.air.conf" ]
     restart: unless-stopped
     depends_on:
       - owo-redis
-  # prod-backend-go:
-  #   container_name: prod-backend-go
-  #   platform: linux/amd64
-  #   build:
-  #     context: ./backend-go
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - 9001:8000
-  #   volumes:
-  #     - ./backend-go:/app
-  #     - gomodProd:/go/pkg/mod
-  #     - gocacheProd:/root/.cache/go-build
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - mysql
+
 volumes:
-  gomod:
-  gocache:
+  owogomod:
+  owogocache:
   owomysql:
   oworedis:
-  gomodSSE:
-  gocacheSSE:
+  owogomodSSE:
+  owogocacheSSE:
