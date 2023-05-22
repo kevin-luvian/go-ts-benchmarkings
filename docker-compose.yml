@@ -15,6 +15,7 @@ services:
     container_name: owo-db
     image: mysql:8.0
     restart: unless-stopped
+    command: --max_connections=200
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: database
@@ -22,6 +23,7 @@ services:
       MYSQL_PASSWORD: password
     volumes:
       - owomysql:/var/lib/mysql
+      - ./mysqld-init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 9102:3306
 
@@ -69,6 +71,10 @@ services:
       - owogomod:/go/pkg/mod
       - owogocache:/root/.cache/go-build
     # command: [ "air", "-c", "./dev/.air.conf" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.6'
     restart: unless-stopped
     depends_on:
       - owo-mysql
@@ -89,6 +95,11 @@ services:
       - owogomodSSE:/go/pkg/mod
       - owogocacheSSE:/root/.cache/go-build
     # command: [ "air", "-c", "./dev/.air.conf" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.6'
+          memory: '512M'
     restart: unless-stopped
     depends_on:
       - owo-redis

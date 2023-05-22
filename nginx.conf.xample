@@ -58,6 +58,8 @@ server
         proxy_set_header Connection '';
         proxy_http_version 1.1;
         chunked_transfer_encoding off;
+        fastcgi_param NO_BUFFERING '';
+        fastcgi_buffering off;
         }
 }
 
