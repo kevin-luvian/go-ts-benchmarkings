@@ -71,7 +71,7 @@ const App = () => {
             level={4}
             style={{ color: "white", margin: 0, marginLeft: "1rem" }}
           >
-            OwO Benchmarker V0.7.2
+            OwO Benchmarker V0.7.3
           </Title>
         </Header>
         <Content style={{ padding: "2rem 3rem", height: "100%" }}>

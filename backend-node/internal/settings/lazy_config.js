@@ -15,7 +15,14 @@ const readConfigJson = () => {
   return config;
 };
 
+const readRepaymentConfigJson = () => {
+  const configPath = path.join(getFEPublicDir(), "DBConfigRepayment.json");
+  const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  return config;
+};
+
 module.exports = {
   getTestDir,
   readConfigJson,
+  readRepaymentConfigJson,
 };

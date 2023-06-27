@@ -25,4 +25,7 @@ bin/
 .DS_Store
 output/
 **/*.xlsx
+**/*.csv
 **/.env
+
+**/index.bundle.*

@@ -1,0 +1,141 @@
+{
+    "columns": [
+        {
+            "original": "KredivoTransactionID",
+            "name": "kredivo_transaction_id",
+            "type": "string",
+            "required": true,
+            "skipOnInvalid": true
+        },
+        {
+            "original": "KredivoLoanID",
+            "name": "kredivo_loan_id",
+            "type": "number"
+        },
+        {
+            "original": "KredivoUserID",
+            "name": "kredivo_user_id",
+            "type": "number"
+        },
+        {
+            "name": "lender_id",
+            "original": "LenderID",
+            "type": "number"
+        },
+        {
+            "original": "DistributorID",
+            "name": "distributor_id",
+            "type": "number"
+        },
+        {
+            "original": "ExternalRef",
+            "name": "external_ref"
+        },
+        {
+            "original": "LenderName",
+            "name": "lender_name"
+        },
+        {
+            "original": "LenderContactEmailPrimary",
+            "name": "lender_contact_email_primary"
+        },
+        {
+            "original": "RepaymentID",
+            "name": "repayment_id",
+            "type": "number"
+        },
+        {
+            "original": "InternalRepaymentID",
+            "name": "internal_repayment_id"
+        },
+        {
+            "original": "ExternalRepaymentID",
+            "name": "external_repayment_id"
+        },
+        {
+            "original": "PostingDate",
+            "name": "posting_date"
+        },
+        {
+            "original": "ValueDate",
+            "name": "value_date"
+        },
+        {
+            "original": "RepaidAmount",
+            "name": "repaid_amount",
+            "type": "number"
+        },
+        {
+            "original": "RepaidPrincipalAmount",
+            "name": "repaid_principal_amount",
+            "type": "number"
+        },
+        {
+            "original": "RepaidInterestAmount",
+            "name": "repaid_interest_amount",
+            "type": "number"
+        },
+        {
+            "original": "LoanDpd",
+            "name": "loan_dpd",
+            "type": "number"
+        },
+        {
+            "original": "IsRefundPayment",
+            "name": "is_refund_payment"
+        },
+        {
+            "original": "RepaidAt",
+            "name": "repaid_at"
+        },
+        {
+            "original": "LoanID",
+            "name": "loan_id",
+            "type": "number"
+        },
+        {
+            "original": "PaymentType",
+            "name": "payment_type"
+        },
+        {
+            "original": "LegacyLoanID",
+            "name": "legacy_loan_id"
+        },
+        {
+            "original": "JFSType",
+            "name": "jfs_type"
+        },
+        {
+            "original": "StartDate",
+            "name": "start_date"
+        },
+        {
+            "original": "Tenure",
+            "name": "tenure"
+        },
+        {
+            "original": "LateInterest",
+            "name": "late_interest",
+            "type": "number"
+        },
+        {
+            "original": "LateFee",
+            "name": "late_fee",
+            "type": "number"
+        },
+        {
+            "original": "Term",
+            "name": "term"
+        },
+        {
+            "original": "LoanClosedAt",
+            "name": "loan_closed_at"
+        },
+        {
+            "original": "RepaymentStatus",
+            "name": "repayment_status"
+        }
+    ],
+    "table_node": "node_limerock_ltd_repayments",
+    "start_row": 1
+}

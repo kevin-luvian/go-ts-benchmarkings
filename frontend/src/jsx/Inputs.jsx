@@ -22,10 +22,11 @@ const Inputs = ({ data, onStateChange }) => {
           <Col span={16} md={19}>
             <CustomDropdown
               defaultItems={[
-                "http://172.104.165.164:7001/ingest-57",
-                "http://172.104.165.164:7002/ingest-57",
-                "http://localhost:9001/ingest-57",
                 "http://localhost:9002/ingest-57",
+                "http://localhost:9002/ingest-900-sq-bulk-create",
+                "http://localhost:9002/ingest-900-sq-raw-query",
+                "http://localhost:9002/ingest-900-sqbc-no-transaction",
+                "http://localhost:9002/ingest-900-sqrc-no-transaction",
               ]}
               value={data.url}
               setValue={(val) => onChange({ url: val })}
@@ -47,14 +48,7 @@ const Inputs = ({ data, onStateChange }) => {
       <Form.Item label="Target SSE URL">
         <Row>
           <Col span={24}>
-            <CustomDropdown
-              defaultItems={[
-                "http://172.104.165.164:7003/sse",
-                "http://localhost:9003/sse",
-              ]}
-              value={data.sseurl}
-              setValue={(val) => onChange({ sseurl: val })}
-            />
+            <CustomDropdown defaultItems={["http://localhost:9003/sse"]} value={data.sseurl} setValue={(val) => onChange({ sseurl: val })} />
           </Col>
         </Row>
       </Form.Item>
@@ -66,12 +60,7 @@ const Inputs = ({ data, onStateChange }) => {
       <Form.Item label="Total Requests:">
         <Row>
           <Col span={16} md={19}>
-            <Slider
-              min={1}
-              max={50}
-              value={data.numOfRequests}
-              onChange={(val) => onChange({ numOfRequests: val })}
-            />
+            <Slider min={1} max={50} value={data.numOfRequests} onChange={(val) => onChange({ numOfRequests: val })} />
           </Col>
           <Col span={8} md={4} offset={1}>
             <InputNumber
@@ -87,21 +76,10 @@ const Inputs = ({ data, onStateChange }) => {
       <Form.Item label="Concurrent Requests:">
         <Row>
           <Col span={16} md={19}>
-            <Slider
-              min={1}
-              max={10}
-              onChange={(val) => onChange({ concurrency: val })}
-              value={data.concurrency}
-            />
+            <Slider min={1} max={10} onChange={(val) => onChange({ concurrency: val })} value={data.concurrency} />
           </Col>
           <Col span={8} md={4} offset={1}>
-            <InputNumber
-              min={1}
-              max={100}
-              style={{ width: "100%" }}
-              value={data.concurrency}
-              onChange={(val) => onChange({ concurrency: val })}
-            />
+            <InputNumber min={1} max={100} style={{ width: "100%" }} value={data.concurrency} onChange={(val) => onChange({ concurrency: val })} />
           </Col>
         </Row>
       </Form.Item>

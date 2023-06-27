@@ -23,7 +23,7 @@ services:
       MYSQL_PASSWORD: password
     volumes:
       - owomysql:/var/lib/mysql
-      - ./mysqld-init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init-scripts/init-sql:/docker-entrypoint-initdb.d
     ports:
       - 9102:3306
 
@@ -54,32 +54,6 @@ services:
       - owo-mysql
       - owo-redis
 
-  backend-go:
-    container_name: owo-backend-go
-    platform: linux/amd64
-    build:
-      context: ./backend-go
-      # context: ./backend-go/dev
-      dockerfile: Dockerfile
-    ports:
-      - 9001:8000
-    volumes:
-      - ./backend-go:/app
-      - ./docker.env:/app/.env
-      - ./frontend/public:/frontend/public
-      - ./tests:/tests
-      - owogomod:/go/pkg/mod
-      - owogocache:/root/.cache/go-build
-    # command: [ "air", "-c", "./dev/.air.conf" ]
-    deploy:
-      resources:
-        limits:
-          cpus: '0.6'
-    restart: unless-stopped
-    depends_on:
-      - owo-mysql
-      - owo-redis
-
   backend-go-sse:
     container_name: owo-backend-go-sse
     platform: linux/amd64
@@ -105,8 +79,6 @@ services:
       - owo-redis
 
 volumes:
-  owogomod:
-  owogocache:
   owomysql:
   oworedis:
   owogomodSSE:

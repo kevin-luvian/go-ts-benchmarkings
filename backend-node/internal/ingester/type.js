@@ -1,3 +1,5 @@
+const STREAM_BATCH_SIZE = 2000;
+
 class XlsxReaderOptions {
   requestID = "";
   tableName = "";
@@ -15,20 +17,37 @@ class XlsxReaderOptions {
   /**
    * @param {XlsxReaderOptions} param0
    */
-  constructor({
-    requestID,
-    tableName,
-    sheetName,
-    startRow,
-    columns,
-    callback,
-  }) {
+  constructor({ requestID, tableName, sheetName, startRow, columns, callback }) {
     this.requestID = requestID;
     this.tableName = tableName;
     this.sheetName = sheetName;
     this.startRow = startRow;
     this.columns = columns;
     this.callback = callback;
+  }
+}
+
+class CSVReaderOptions {
+  startRow = 0;
+  /**
+   * @type {ColumnOption[]}
+   */
+  columns = [];
+  batchSize = 0;
+  /**
+   * @param {Object<string, *>[]} arr
+   * @return {Promise<bool>}
+   */
+  write = async (arr) => {};
+
+  /**
+   * @param {CSVReaderOptions} param0
+   */
+  constructor({ startRow, columns, batchSize = STREAM_BATCH_SIZE, write }) {
+    this.startRow = startRow;
+    this.columns = columns;
+    this.batchSize = batchSize;
+    this.write = write;
   }
 }
 
@@ -72,5 +91,6 @@ class ColumnOption {
 
 module.exports = {
   XlsxReaderOptions,
+  CSVReaderOptions,
   ReportConfig,
 };

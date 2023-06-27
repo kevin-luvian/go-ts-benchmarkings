@@ -1,7 +1,4 @@
-const {
-  readConfigJson,
-  getTestDir,
-} = require("../internal/settings/lazy_config");
+const { readConfigJson, getTestDir } = require("../internal/settings/lazy_config");
 const { Server, Database, init } = require("../internal/settings/settings");
 const { makeApp } = require("./server");
 const http = require("http");
@@ -32,13 +29,12 @@ const main = async () => {
    */
   function onListening() {
     const addr = server.address();
-    const bind =
-      typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+    const bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
     console.log("Listening on " + bind);
   }
 
   server.listen(port);
-  server.on("error", onError);
+  server.on("error", (error) => onError(error, port));
   server.on("listening", onListening);
 };
 
@@ -74,7 +70,7 @@ function normalizePort(val) {
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error) {
+function onError(error, port) {
   if (error.syscall !== "listen") {
     throw error;
   }

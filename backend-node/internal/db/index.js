@@ -1,9 +1,9 @@
 const mysql = require("mysql");
-const Sequelize = require("sequelize");
+const { Sequelize } = require("sequelize");
 const { Database } = require("../settings/settings");
 
 /**
- * @type {Sequelize.Sequelize}
+ * @type {Sequelize}
  */
 let conn = null;
 
@@ -18,17 +18,12 @@ const connect = () =>
   });
 
 const connectSequelize = async () => {
-  const sq = new Sequelize(
-    Database.database,
-    Database.user,
-    Database.password,
-    {
-      host: Database.host,
-      port: Database.port,
-      dialect: "mysql",
-      logging: false,
-    }
-  );
+  const sq = new Sequelize(Database.database, Database.user, Database.password, {
+    host: Database.host,
+    port: Database.port,
+    dialect: "mysql",
+    logging: false,
+  });
   console.log("DBHost:Port", Database.host, Database.port);
   await sq.authenticate();
   console.log("DB Connected!!");
