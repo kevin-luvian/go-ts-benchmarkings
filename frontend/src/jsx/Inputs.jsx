@@ -27,6 +27,12 @@ const Inputs = ({ data, onStateChange }) => {
                 "http://localhost:9002/ingest-900-sq-raw-query",
                 "http://localhost:9002/ingest-900-sqbc-no-transaction",
                 "http://localhost:9002/ingest-900-sqrc-no-transaction",
+                "=====",
+                "http://172.104.53.212:9002/ingest-57",
+                "http://172.104.53.212:9002/ingest-900-sq-bulk-create",
+                "http://172.104.53.212:9002/ingest-900-sq-raw-query",
+                "http://172.104.53.212:9002/ingest-900-sqbc-no-transaction",
+                "http://172.104.53.212:9002/ingest-900-sqrc-no-transaction",
               ]}
               value={data.url}
               setValue={(val) => onChange({ url: val })}
@@ -48,7 +54,11 @@ const Inputs = ({ data, onStateChange }) => {
       <Form.Item label="Target SSE URL">
         <Row>
           <Col span={24}>
-            <CustomDropdown defaultItems={["http://localhost:9003/sse"]} value={data.sseurl} setValue={(val) => onChange({ sseurl: val })} />
+            <CustomDropdown
+              defaultItems={["http://localhost:9003/sse", "=====", "http://172.104.53.212:9003/sse"]}
+              value={data.sseurl}
+              setValue={(val) => onChange({ sseurl: val })}
+            />
           </Col>
         </Row>
       </Form.Item>

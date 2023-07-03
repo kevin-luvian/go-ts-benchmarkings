@@ -59,7 +59,7 @@ class BulkCreateNoTransactionStrategy extends Strategy {
   }
 
   async write(data) {
-    await this.uc.bulkCreate(data);
+    await this.uc.bulkCreate(data, {});
   }
 }
 

@@ -2,8 +2,8 @@
 
 server
 {
-        listen 7000;
-        listen [::]:7000;
+        listen 9000;
+        listen [::]:9000;
 
         location /
         {
@@ -16,8 +16,8 @@ server
 
 server
 {
-        listen 7001;
-        listen [::]:7001;
+        listen 9001;
+        listen [::]:9001;
 
         location /
         {
@@ -30,8 +30,8 @@ server
 
 server
 {
-        listen 7002;
-        listen [::]:7002;
+        listen 9002;
+        listen [::]:9002;
 
         location /
         {
@@ -44,8 +44,8 @@ server
 
 server
 {
-        listen 7003;
-        listen [::]:7003;
+        listen 9003;
+        listen [::]:9003;
 
         location /
         {
@@ -69,8 +69,8 @@ stream {
   }
 
   server {
-    listen 7102;
-    listen [::]:7102;
+    listen 9102;
+    listen [::]:9102;
     proxy_pass owo-mysql;
   }
 }

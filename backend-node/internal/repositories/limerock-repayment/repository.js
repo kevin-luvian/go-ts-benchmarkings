@@ -46,6 +46,31 @@ class LimerockRepaymentRepository {
       type: QueryTypes.INSERT,
     });
   }
+
+  async cleanTable() {
+    let tableName = this.lrModel.getTableName();
+    if (typeof tableName !== "string") {
+      tableName = tableName.tableName;
+    }
+    const tempOld = `old_foo_${tableName}`;
+    const tempNew = `new_foo_${tableName}`;
+
+    try {
+      await this.lrModel.sequelize.query(`CREATE TABLE ${tempNew} LIKE ${tableName};`, {
+        type: QueryTypes.RAW,
+      });
+      await this.lrModel.sequelize.query(`RENAME TABLE ${tableName} TO ${tempOld}, ${tempNew} TO ${tableName};`, {
+        type: QueryTypes.RAW,
+      });
+      await this.lrModel.sequelize.query(`DROP TABLE IF EXISTS ${tempOld};`, {
+        type: QueryTypes.RAW,
+      });
+    } catch (error) {
+      await this.lrModel.sequelize.query(`DROP TABLE IF EXISTS ${tempNew};`, {
+        type: QueryTypes.RAW,
+      });
+    }
+  }
 }
 
 module.exports = { LimerockRepaymentRepository };

@@ -183,6 +183,18 @@ const makeRouter = ({ useCase, lrUC }) => {
     }
   });
 
+  router.get("/clean", async (req, res) => {
+    try {
+      await lrUC.clean();
+      success(res, 0, {
+        msg: "db cleaned",
+      });
+    } catch (err) {
+      console.log(err);
+      error(res, 0, 500, err);
+    }
+  });
+
   return router;
 };
 

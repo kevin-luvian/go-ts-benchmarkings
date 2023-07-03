@@ -29,7 +29,7 @@ class LimerockRepaymentUseCase {
    * @param {LimerockRepayment[]} data
    * @param {CRUDOpts} opts
    */
-  async bulkCreate(data, opts) {
+  async bulkCreate(data, opts = {}) {
     const lookup = await this._getSidecarLookup(data.map((d) => d.kredivo_transaction_id));
 
     for (let i = 0; i < data.length; i++) {
@@ -53,7 +53,7 @@ class LimerockRepaymentUseCase {
    * @param {LimerockRepayment[]} data
    * @param {CRUDOpts} opts
    */
-  async bulkCreateRaw(data, opts) {
+  async bulkCreateRaw(data, opts = {}) {
     const lookup = await this._getSidecarLookup(data.map((d) => d.kredivo_transaction_id));
 
     for (let i = 0; i < data.length; i++) {
@@ -70,6 +70,10 @@ class LimerockRepaymentUseCase {
     await this.limerockRepaymentRepo.bulkCreateRaw(data, {
       transaction: opts.transaction,
     });
+  }
+
+  async clean(){
+    await this.limerockRepaymentRepo.cleanTable();
   }
 
   /**
