@@ -1,0 +1,19 @@
+make build
+sudo mkdir -p /var/www/go
+sudo mv ./node_exporter /var/www/go/exporter
+sudo nano /etc/systemd/system/exporter.service
+sudo systemctl start exporter
+sudo systemctl enable jobs
+ufw allow 9100
+
+# benchmarking
+sudo apt-get install sysbench
+sysbench --threads=4 cpu run
+
+# stress test
+sudo apt install stress-ng
+stress-ng --cpu 2
+
+# grafana id
+node_exporter_full 1860
+express-prometheus-middleware 16306
